@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SURTICORE – Surtitronic</title>
+  <meta name="description" content="Sistema centralizado de gestión y control de activos tecnológicos">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="login-page">
+  <div class="login-bg">
+    <div class="tech-pattern"></div>
+    <div class="login-bg-orb login-bg-orb--1"></div>
+    <div class="login-bg-orb login-bg-orb--2"></div>
+    <div class="login-bg-orb login-bg-orb--3"></div>
+  </div>
+
+  <div class="login-container" id="loginContainer">
+    <div class="login-card surticore-card">
+      <div class="login-card__header">
+        <div class="login-logo-box">
+          <i class="fas fa-server"></i>
+          <i class="fas fa-server"></i>
+        </div>
+        <h1 class="surticore-title"><span class="text-red">SURTI</span><span class="text-white">C<span class="core-o">O</span>RE</span></h1>
+        <p class="surticore-subtitle-white">EL NÚCLEO DE TUS ACTIVOS TECNOLÓGICOS</p>
+        <p class="surticore-subtext">Sistema centralizado de gestión y control de activos<br>tecnológicos de tu empresa.</p>
+      </div>
+      <form class="login-form" id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group custom-input">
+          <i class="fas fa-user input-icon"></i>
+          <input type="text" id="username" placeholder="Usuario corporativo" required autocomplete="username">
+        </div>
+        <div class="form-group custom-input password-wrapper">
+          <i class="fas fa-lock input-icon"></i>
+          <input type="password" id="password" placeholder="Contraseña" required autocomplete="current-password">
+          <button type="button" class="password-toggle" onclick="togglePassword()" aria-label="Mostrar contraseña">
+            <i class="fas fa-eye" id="passwordIcon"></i>
+          </button>
+        </div>
+        <div id="loginError" class="login-error" style="display:none;">
+          <i class="fas fa-exclamation-circle"></i>
+          <span>Usuario o contraseña incorrectos</span>
+        </div>
+        <button type="submit" class="btn btn-primary login-btn" id="loginBtn">
+          <i class="fas fa-sign-in-alt"></i> Acceder al sistema
+        </button>
+      </form>
+      <div class="login-card__footer">
+        <div class="circuit-line">
+          <div class="circuit-line-dot-right"></div>
+        </div>
+        <p>Powered by</p>
+        <img src="DesignInspo/Logo%20Surtitronic.png" alt="Surtitronic" class="footer-logo-img">
+      </div>
+    </div>
+    
+    <div class="login-features">
+      <div class="feature-item">
+        <i class="fas fa-shield-alt text-red"></i>
+        <span>SEGURIDAD<br>AVANZADA</span>
+      </div>
+      <div class="feature-divider"></div>
+      <div class="feature-item">
+        <i class="fas fa-network-wired text-red"></i>
+        <span>INFORMACIÓN<br>CENTRALIZADA</span>
+      </div>
+      <div class="feature-divider"></div>
+      <div class="feature-item">
+        <i class="fas fa-clock text-red"></i>
+        <span>CONTROL<br>EN TIEMPO REAL</span>
+      </div>
+      <div class="feature-divider"></div>
+      <div class="feature-item">
+        <i class="fas fa-chart-bar text-red"></i>
+        <span>DECISIONES<br>INTELIGENTES</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    // Redirect if already logged in
+    if (AuthManager.isLoggedIn()) {
+      window.location.href = AuthManager.isAdmin() ? 'admin.html' : 'dashboard.html';
+    }
+
+    // Animate in
+    setTimeout(() => document.getElementById('loginContainer').classList.add('visible'), 100);
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const errorEl = document.getElementById('loginError');
+      const btn = document.getElementById('loginBtn');
+      
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
+      btn.disabled = true;
+      errorEl.style.display = 'none';
+
+      const session = await AuthManager.login(username, password);
+      
+      if (session) {
+        document.querySelector('.login-card').classList.add('success');
+        setTimeout(() => {
+          window.location.href = session.rol === 'admin' ? 'admin.html' : 'dashboard.html';
+        }, 600);
+      } else {
+        errorEl.style.display = 'flex';
+        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Acceder al sistema';
+        btn.disabled = false;
+        document.querySelector('.login-card').classList.add('shake');
+        setTimeout(() => document.querySelector('.login-card').classList.remove('shake'), 500);
+      }
+    }
+
+    function togglePassword() {
+      const input = document.getElementById('password');
+      const icon = document.getElementById('passwordIcon');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+      } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+      }
+    }
+  </script>
+    <!-- Mouse Glow Effect -->
+    <div id="mouse-glow"></div>
+
+    <script>
+      const glow = document.getElementById('mouse-glow');
+      document.addEventListener('mousemove', (e) => {
+        glow.style.left = e.clientX + 'px';
+        glow.style.top = e.clientY + 'px';
+      });
+    </script>
+  </body>
+</html>

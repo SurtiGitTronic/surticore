@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard – Inventario IT</title>
+  <meta name="description" content="Dashboard de inventario de activos IT">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar__header">
+        <img id="sidebarLogo" src="" alt="Logo" class="sidebar__logo" style="display:none">
+        <span class="sidebar__company" id="sidebarCompany">Empresa</span>
+      </div>
+      <nav class="sidebar__nav">
+        <a href="#" class="sidebar__link active" data-section="equipos" onclick="switchSection('equipos',this)">
+          <i class="fas fa-laptop"></i> Equipos
+        </a>
+        <a href="#" class="sidebar__link" data-section="personal" onclick="switchSection('personal',this)">
+          <i class="fas fa-users"></i> Personal
+        </a>
+        <div id="navUbicacionesContainer" style="display:none; margin-top:20px;">
+          <div class="sidebar__nav-title" style="padding:0 14px 8px; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; font-weight:700; letter-spacing:1px; display:flex; justify-content:space-between; align-items:center;">
+            <span id="navUbicacionesTitle">UBICACIONES</span>
+            <button id="btnManageLocs" class="btn-icon" style="display:none; width:24px; height:24px; padding:0" onclick="openGestionUbicaciones()"><i class="fas fa-cog"></i></button>
+          </div>
+          <div id="navUbicacionesList"></div>
+        </div>
+      </nav>
+      <div class="sidebar__footer">
+        <img src="DesignInspo/Logo%20Surtitronic.png" alt="Surtitronic" onerror="this.style.display='none'">
+        <p>Powered by Surtitronic</p>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main-content">
+      <div class="topbar">
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="menu-toggle-dash" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+          <h1 class="topbar__title" id="pageTitle">Equipos</h1>
+        </div>
+        <div class="topbar__right">
+          <div class="topbar__user"><i class="fas fa-user-circle"></i> <strong id="userName"></strong></div>
+          <button class="btn btn-outline btn-sm" onclick="AuthManager.logout()"><i class="fas fa-sign-out-alt"></i> Salir</button>
+        </div>
+      </div>
+
+      <div class="page-content">
+        <!-- Print header (hidden, shows on print) -->
+        <div class="print-header" id="printHeader">
+          <img id="printLogo" src="" alt="Logo">
+          <h2 id="printCompany">Empresa</h2>
+          <p>Inventario de Activos IT — <span id="printDate"></span></p>
+        </div>
+
+        <!-- === EQUIPOS SECTION === -->
+        <div id="section-equipos">
+          <div class="kpi-grid" id="kpiGrid"></div>
+
+          <div class="toolbar">
+            <div class="toolbar__search">
+              <i class="fas fa-search"></i>
+              <input type="text" id="searchInput" placeholder="Buscar por marca, modelo, serial, nombre, IP..." oninput="handleSearch()">
+            </div>
+            <div class="toolbar__filters">
+              <select id="filterTipo" onchange="applyFilters()">
+                <option value="">Todos los tipos</option>
+                <option value="computador">Computadores</option>
+                <option value="impresora">Impresoras</option>
+                <option value="celular">Celulares</option>
+                <option value="tablet">Tablets</option>
+                <option value="servidor">Servidores</option>
+              </select>
+              <select id="filterMarca" onchange="applyFilters()"><option value="">Todas las marcas</option></select>
+              <select id="filterEstado" onchange="applyFilters()">
+                <option value="">Todos los estados</option>
+                <option value="activo">Activo</option>
+                <option value="mantenimiento">Mantenimiento</option>
+                <option value="baja">Dado de baja</option>
+              </select>
+              <select id="filterEmpleado" onchange="applyFilters()"><option value="">Todos los empleados</option></select>
+              <select id="filterUbicacion" onchange="applyFilters()"><option value="">Todas las ubicaciones</option></select>
+              <input type="date" id="filterFechaDesde" onchange="applyFilters()" title="Fecha desde">
+              <input type="date" id="filterFechaHasta" onchange="applyFilters()" title="Fecha hasta">
+              <button class="btn btn-outline btn-sm" onclick="clearFilters()"><i class="fas fa-times"></i> Limpiar</button>
+            </div>
+            <div class="toolbar__actions">
+              <div class="view-toggle">
+                <button class="active" onclick="setView('table',this)" title="Vista tabla"><i class="fas fa-table"></i></button>
+                <button onclick="setView('cards',this)" title="Vista tarjetas"><i class="fas fa-th-large"></i></button>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="exportCSV()" title="Exportar CSV"><i class="fas fa-file-csv"></i> CSV</button>
+              <button class="btn btn-secondary btn-sm" onclick="exportPDF()" title="Exportar PDF"><i class="fas fa-file-pdf"></i> PDF</button>
+              <button class="btn btn-primary btn-sm" id="btnAddEquipo" onclick="openEquipoModal()" style="display:none"><i class="fas fa-plus"></i> Agregar</button>
+            </div>
+          </div>
+
+          <!-- Table View -->
+          <div id="tableView" class="table-container">
+            <div class="table-wrapper">
+              <table>
+                <thead><tr>
+                  <th onclick="sortBy('tipo')">Tipo</th>
+                  <th onclick="sortBy('marca')">Equipo</th>
+                  <th onclick="sortBy('serial')">Serial</th>
+                  <th onclick="sortBy('empleado')">Asignado a</th>
+                  <th onclick="sortBy('ubicacion')">Ubicación</th>
+                  <th onclick="sortBy('estado')">Estado</th>
+                  <th onclick="sortBy('fechaIngreso')">Ingreso</th>
+                  <th>Acciones</th>
+                </tr></thead>
+                <tbody id="equiposTableBody"></tbody>
+              </table>
+            </div>
+            <div class="pagination" id="pagination"></div>
+          </div>
+
+          <!-- Cards View -->
+          <div id="cardsView" class="cards-grid" style="display:none"></div>
+        </div>
+
+        <!-- === PERSONAL SECTION === -->
+        <div id="section-personal" style="display:none">
+          <div class="toolbar">
+            <div class="toolbar__search">
+              <i class="fas fa-search"></i>
+              <input type="text" id="searchPersonal" placeholder="Buscar por nombre, apellido, cargo, departamento..." oninput="handleSearchPersonal()">
+            </div>
+            <div class="toolbar__actions">
+              <button class="btn btn-primary btn-sm" id="btnAddPersonal" onclick="openPersonalModal()" style="display:none"><i class="fas fa-plus"></i> Agregar</button>
+            </div>
+          </div>
+          <div class="table-container">
+            <div class="table-wrapper">
+              <table>
+                <thead><tr>
+                  <th>Nombre</th><th>Apellido</th><th>Cargo</th><th>Departamento</th><th>Email</th><th>Teléfono</th><th>Equipos</th><th>Acciones</th>
+                </tr></thead>
+                <tbody id="personalTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Detail Equipo -->
+  <div class="modal" id="modalDetail">
+    <div class="modal__overlay" onclick="closeModal('modalDetail')"></div>
+    <div class="modal__content large">
+      <div class="modal__header">
+        <h2 id="detailTitle">Detalle del Equipo</h2>
+        <button class="modal__close" onclick="closeModal('modalDetail')">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div class="tabs" id="detailTabs">
+          <button class="tab-btn active" onclick="switchTab(this,'detail-general')">General</button>
+          <button class="tab-btn" onclick="switchTab(this,'detail-hardware')">Hardware</button>
+          <button class="tab-btn" onclick="switchTab(this,'detail-software')">Software y Red</button>
+          <button class="tab-btn" onclick="switchTab(this,'detail-notas')">Notas</button>
+        </div>
+        <div id="detail-general" class="tab-content active"></div>
+        <div id="detail-hardware" class="tab-content"></div>
+        <div id="detail-software" class="tab-content"></div>
+        <div id="detail-notas" class="tab-content"></div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn-secondary" onclick="closeModal('modalDetail')">Cerrar</button>
+        <button class="btn btn-primary" id="detailEditBtn" onclick="editFromDetail()" style="display:none"><i class="fas fa-edit"></i> Editar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Add/Edit Equipo -->
+  <div class="modal" id="modalEquipo">
+    <div class="modal__overlay" onclick="closeModal('modalEquipo')"></div>
+    <div class="modal__content large">
+      <div class="modal__header">
+        <h2 id="equipoModalTitle">Agregar Equipo</h2>
+        <button class="modal__close" onclick="closeModal('modalEquipo')">&times;</button>
+      </div>
+      <div class="modal__body">
+        <form id="equipoForm" onsubmit="saveEquipo(event)">
+          <input type="hidden" id="equipoId">
+          <div class="tabs">
+            <button type="button" class="tab-btn active" onclick="switchTab(this,'form-general')">General</button>
+            <button type="button" class="tab-btn" onclick="switchTab(this,'form-hardware')">Hardware</button>
+            <button type="button" class="tab-btn" onclick="switchTab(this,'form-software')">Software y Red</button>
+            <button type="button" class="tab-btn" onclick="switchTab(this,'form-notas')">Notas</button>
+          </div>
+
+          <div id="form-general" class="tab-content active">
+            <div class="form-row" style="margin-bottom:14px">
+              <div class="form-group"><label>Tipo *</label>
+                <select id="eqTipo" required onchange="toggleTypeFields()"><option value="">Seleccionar</option><option value="computador">Computador</option><option value="impresora">Impresora</option><option value="celular">Celular</option><option value="tablet">Tablet</option><option value="servidor">Servidor</option></select>
+              </div>
+              <div class="form-group"><label>Estado *</label>
+                <select id="eqEstado" required><option value="activo">Activo</option><option value="mantenimiento">Mantenimiento</option><option value="baja">Dado de baja</option></select>
+              </div>
+            </div>
+            <div class="form-row" style="margin-bottom:14px">
+              <div class="form-group"><label>Marca *</label><input id="eqMarca" required placeholder="Ej: Dell, HP, Lenovo"></div>
+              <div class="form-group"><label>Modelo *</label><input id="eqModelo" required placeholder="Ej: Latitude 5540"></div>
+            </div>
+            <div class="form-row" style="margin-bottom:14px">
+              <div class="form-group"><label>Serial *</label><input id="eqSerial" required placeholder="Número de serie"></div>
+              <div class="form-group"><label>Asignado a</label>
+                <select id="eqEmpleado"><option value="">Sin asignar</option></select>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:14px"><label>Ubicación</label><select id="eqUbicacion"><option value="">Sin asignar</option></select></div>
+            <div class="form-row">
+              <div class="form-group"><label>Fecha de Compra</label><input type="date" id="eqFechaCompra"></div>
+              <div class="form-group"><label>Garantía Hasta</label><input type="date" id="eqGarantia"></div>
+            </div>
+          </div>
+
+          <div id="form-hardware" class="tab-content">
+            <!-- Common fields -->
+            <div class="form-row" style="margin-bottom:14px">
+              <div class="form-group"><label>Procesador</label><input id="eqProcesador" placeholder="Ej: Intel Core i7-1365U"></div>
+              <div class="form-group"><label>RAM</label><input id="eqRam" placeholder="Ej: 16 GB DDR5"></div>
+            </div>
+            <div class="form-row" style="margin-bottom:14px">
+              <div class="form-group"><label>Disco</label><input id="eqDisco" placeholder="Ej: 512 GB NVMe SSD"></div>
+              <div class="form-group"><label>Pantalla</label><input id="eqPantalla" placeholder="Ej: 15.6&quot; FHD"></div>
+            </div>
+            <div class="form-row" style="margin-bottom:14px">
+              <div class="form-group"><label>Tarjeta de Video</label><input id="eqTarjetaVideo" placeholder="Ej: NVIDIA RTX 4060"></div>
+            </div>
+            <!-- Printer fields -->
+            <div id="printerFields" style="display:none">
+              <div class="form-row">
+                <div class="form-group"><label>Tipo de Impresión</label><input id="eqTipoImpresion" placeholder="Ej: Láser Color"></div>
+                <div class="form-group"><label>Conectividad</label><input id="eqConectividad" placeholder="Ej: WiFi / USB / Ethernet"></div>
+              </div>
+            </div>
+            <!-- Phone fields -->
+            <div id="phoneFields" style="display:none">
+              <div class="form-row">
+                <div class="form-group"><label>IMEI</label><input id="eqImei" placeholder="IMEI del dispositivo"></div>
+                <div class="form-group"><label>Línea Telefónica</label><input id="eqLinea" placeholder="+56 9 XXXX XXXX"></div>
+              </div>
+            </div>
+            <!-- Server fields -->
+            <div id="serverFields" style="display:none">
+              <div class="form-row">
+                <div class="form-group"><label>Tipo Servidor</label><input id="eqTipoServidor" placeholder="Ej: Rack 2U"></div>
+                <div class="form-group"><label>Almacenamiento Total</label><input id="eqAlmTotal" placeholder="Ej: 4 TB RAID 5"></div>
+              </div>
+            </div>
+          </div>
+
+          <div id="form-software" class="tab-content">
+            <div class="form-row" style="margin-bottom:14px">
+              <div class="form-group"><label>Sistema Operativo</label><input id="eqOS" placeholder="Ej: Windows 11 Pro"></div>
+              <div class="form-group"><label>Versión S.O.</label><input id="eqOSVersion" placeholder="Ej: 23H2"></div>
+            </div>
+            <div class="form-group" style="margin-bottom:14px"><label>Dirección IP</label><input id="eqIP" placeholder="Ej: 192.168.1.100"></div>
+
+            <div class="detail-section">
+              <h4><i class="fas fa-box"></i> Programas Instalados</h4>
+              <div id="listProgramas"></div>
+              <button type="button" class="add-list-btn" onclick="addDynamicItem('listProgramas')"><i class="fas fa-plus"></i> Agregar programa</button>
+            </div>
+            <div class="detail-section">
+              <h4><i class="fas fa-folder"></i> Unidades de Red</h4>
+              <div id="listUnidades"></div>
+              <button type="button" class="add-list-btn" onclick="addDynamicItem('listUnidades')"><i class="fas fa-plus"></i> Agregar unidad</button>
+            </div>
+            <div class="detail-section">
+              <h4><i class="fas fa-print"></i> Impresoras Instaladas</h4>
+              <div id="listImpresoras"></div>
+              <button type="button" class="add-list-btn" onclick="addDynamicItem('listImpresoras')"><i class="fas fa-plus"></i> Agregar impresora</button>
+            </div>
+          </div>
+
+          <div id="form-notas" class="tab-content">
+            <div class="form-group"><label>Notas / Observaciones</label><textarea id="eqNotas" rows="6" placeholder="Notas adicionales sobre el equipo..."></textarea></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn-secondary" onclick="closeModal('modalEquipo')">Cancelar</button>
+        <button class="btn btn-primary" onclick="document.getElementById('equipoForm').requestSubmit()"><i class="fas fa-save"></i> Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Add/Edit Personal -->
+  <div class="modal" id="modalPersonal">
+    <div class="modal__overlay" onclick="closeModal('modalPersonal')"></div>
+    <div class="modal__content">
+      <div class="modal__header">
+        <h2 id="personalModalTitle">Agregar Personal</h2>
+        <button class="modal__close" onclick="closeModal('modalPersonal')">&times;</button>
+      </div>
+      <div class="modal__body">
+        <form id="personalForm" onsubmit="savePersonal(event)">
+          <input type="hidden" id="personalId">
+          <div class="form-row" style="margin-bottom:14px">
+            <div class="form-group"><label>Nombre *</label><input id="perNombre" required placeholder="Nombre"></div>
+            <div class="form-group"><label>Apellido *</label><input id="perApellido" required placeholder="Apellido"></div>
+          </div>
+          <div class="form-row" style="margin-bottom:14px">
+            <div class="form-group"><label>Cargo</label><input id="perCargo" placeholder="Ej: Contador"></div>
+            <div class="form-group"><label>Departamento</label><input id="perDepto" placeholder="Ej: Contabilidad"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Email</label><input type="email" id="perEmail" placeholder="email@empresa.cl"></div>
+            <div class="form-group"><label>Teléfono</label><input id="perTelefono" placeholder="+56 9 XXXX XXXX"></div>
+          </div>
+          <div class="form-group" style="margin-top:14px"><label>Ubicación</label><select id="perUbicacion"><option value="">Sin asignar</option></select></div>
+        </form>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn-secondary" onclick="closeModal('modalPersonal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="document.getElementById('personalForm').requestSubmit()"><i class="fas fa-save"></i> Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Employee equipments -->
+  <div class="modal" id="modalEmpleadoEquipos">
+    <div class="modal__overlay" onclick="closeModal('modalEmpleadoEquipos')"></div>
+    <div class="modal__content large">
+      <div class="modal__header">
+        <h2 id="empleadoEquiposTitle">Equipos Asignados</h2>
+        <button class="modal__close" onclick="closeModal('modalEmpleadoEquipos')">&times;</button>
+      </div>
+      <div class="modal__body" id="empleadoEquiposBody"></div>
+      <div class="modal__footer">
+        <button class="btn btn-secondary" onclick="closeModal('modalEmpleadoEquipos')">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/data.js"></script>
+  <!-- MODAL: Manage Ubicaciones -->
+  <div class="modal" id="modalGestionUbicaciones">
+    <div class="modal__overlay" onclick="closeModal('modalGestionUbicaciones')"></div>
+    <div class="modal__content" style="max-width:400px">
+      <div class="modal__header">
+        <h2>Gestión de <span id="gestionUbicacionesTitle">Ubicaciones</span></h2>
+        <button class="modal__close" onclick="closeModal('modalGestionUbicaciones')">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div class="form-group" style="margin-bottom:14px">
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <input id="nuevaUbicacionInput" placeholder="Nombre de la nueva sede" style="flex:1">
+            <button type="button" class="btn btn-outline" onclick="clientAddUbicacion()">Añadir</button>
+          </div>
+          <div id="gestionUbicacionesList" class="detail-list" style="max-height:200px;overflow-y:auto;background:var(--bg-secondary);border-radius:8px;padding:8px;"></div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn-secondary" onclick="closeModal('modalGestionUbicaciones')">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/reports.js"></script>
+  <script src="js/dashboard.js"></script>
+  <!-- Mouse Glow Effect -->
+  <div id="mouse-glow"></div>
+
+  <script>
+    const glow = document.getElementById('mouse-glow');
+    if (glow) {
+      document.addEventListener('mousemove', (e) => {
+        glow.style.left = e.clientX + 'px';
+        glow.style.top = e.clientY + 'px';
+      });
+    }
+  </script>
+</body>
+</html>
