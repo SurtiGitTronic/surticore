@@ -1,5 +1,6 @@
 // Dashboard Init
 let currentView='table',currentSort={key:'fechaIngreso',dir:'desc'},currentPage=1,pageSize=10,filteredEquipos=[],empresaId=null,currentLocationFilter='';
+let chartInstances = {};
 
 document.addEventListener('DOMContentLoaded', async ()=>{
 if(!AuthManager.requireAuth())return;
@@ -23,6 +24,7 @@ if(s.permisos && s.permisos.canManageUbicaciones) {
 }
 if(AuthManager.canCreate()){document.getElementById('btnAddEquipo').style.display='';document.getElementById('btnAddPersonal').style.display='';}
 await loadUbicacionesSelects();await loadFilters();await loadSidebarLocations();await renderKPIs();await applyFilters();await renderPersonal();
+await renderExecutiveDashboard();
 });
 
 async function loadSidebarLocations() {
@@ -378,6 +380,7 @@ function selectLocationSection(loc, section, el) {
   document.getElementById('filterUbicacion').value = loc;
   applyFilters();
   
+  document.getElementById('section-dashboard').style.display = 'none';
   document.getElementById('section-equipos').style.display = section === 'equipos' ? '' : 'none';
   document.getElementById('section-personal').style.marginTop = '0';
   document.getElementById('section-personal').style.display = section === 'personal' ? '' : 'none';
@@ -434,17 +437,21 @@ async function clientDeleteUbicacion(nombre) {
 
 function switchSection(section,el){
 currentLocationFilter = '';
-document.getElementById('filterUbicacion').value = '';
-applyFilters();
+const filterUb = document.getElementById('filterUbicacion');
+if(filterUb) filterUb.value = '';
+if(section === 'equipos' || section === 'personal') applyFilters();
 
 document.querySelectorAll('.sidebar__link').forEach(l=>l.classList.remove('active'));
 if(el) el.classList.add('active');
 
+document.getElementById('section-dashboard').style.display=section==='dashboard'?'':'none';
 document.getElementById('section-equipos').style.display=section==='equipos'?'':'none';
 document.getElementById('section-personal').style.marginTop='0';
 document.getElementById('section-personal').style.display=section==='personal'?'':'none';
-document.getElementById('pageTitle').textContent=section==='equipos'?'Equipos':'Personal';
-renderPersonal();
+const titles = {dashboard:'Dashboard',equipos:'Equipos',personal:'Personal'};
+document.getElementById('pageTitle').textContent=titles[section]||section;
+if(section==='dashboard') renderExecutiveDashboard();
+if(section==='personal') renderPersonal();
 }
 function switchTab(btn,tabId){
 const parent=btn.closest('.modal__body')||btn.closest('.modal__content')||document;
@@ -466,4 +473,317 @@ const emp=await DataManager.getEmpresa(empresaId);const pm={};
 const personal=await DataManager.getPersonal(empresaId);
 personal.forEach(p=>pm[p.id]=p);
 ReportsManager.exportPDF(filteredEquipos,emp?emp.nombre:'Empresa',pm,emp?emp.logo:null);
+}
+
+// ============================================
+// === EXECUTIVE DASHBOARD ANALYTICS ENGINE ===
+// ============================================
+
+const CHART_COLORS = {
+  blue: '#3b82f6', purple: '#8b5cf6', green: '#10b981', orange: '#f59e0b',
+  red: '#ef4444', cyan: '#06b6d4', pink: '#ec4899', indigo: '#6366f1',
+  blueBg: 'rgba(59,130,246,0.7)', purpleBg: 'rgba(139,92,246,0.7)',
+  greenBg: 'rgba(16,185,129,0.7)', orangeBg: 'rgba(245,158,11,0.7)',
+  redBg: 'rgba(239,68,68,0.7)', cyanBg: 'rgba(6,182,212,0.7)',
+  pinkBg: 'rgba(236,72,153,0.7)', indigoBg: 'rgba(99,102,241,0.7)'
+};
+
+const CHART_DEFAULTS = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: {
+    legend: { labels: { color: '#a0a0b8', font: { family: 'Poppins', size: 12 }, padding: 16, usePointStyle: true, pointStyleWidth: 10 } },
+    tooltip: { backgroundColor: 'rgba(18,18,26,0.95)', titleColor: '#f0f0f5', bodyColor: '#a0a0b8', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 12, cornerRadius: 8, titleFont: { family: 'Outfit', weight: '600' }, bodyFont: { family: 'Poppins' } }
+  },
+  scales: {
+    x: { ticks: { color: '#a0a0b8', font: { family: 'Poppins', size: 11 } }, grid: { color: 'rgba(255,255,255,0.04)' }, border: { color: 'rgba(255,255,255,0.06)' } },
+    y: { ticks: { color: '#a0a0b8', font: { family: 'Poppins', size: 11 } }, grid: { color: 'rgba(255,255,255,0.04)' }, border: { color: 'rgba(255,255,255,0.06)' } }
+  }
+};
+
+function destroyChart(id) { if(chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; } }
+
+function formatCurrency(val) {
+  if(!val && val !== 0) return '$0';
+  return '$' + Number(val).toLocaleString('es-CL', {maximumFractionDigits:0});
+}
+
+async function renderExecutiveDashboard() {
+  const equipos = await DataManager.getEquipos(empresaId);
+  const personal = await DataManager.getPersonal(empresaId);
+  renderExecKPIs(equipos, personal);
+  renderCategoryChart(equipos);
+  renderDistributionChart(equipos);
+  renderInvestmentChart(equipos);
+  renderLocationChart(equipos);
+  renderStatusChart(equipos);
+  renderAlerts(equipos);
+  renderRecentAssets(equipos, personal);
+}
+
+// --- Executive KPIs ---
+function renderExecKPIs(equipos, personal) {
+  const total = equipos.length;
+  const totalValue = equipos.reduce((s, e) => s + (parseFloat(e.precioEstimado) || 0), 0);
+  const activos = equipos.filter(e => e.estado === 'activo').length;
+  const mant = equipos.filter(e => e.estado === 'mantenimiento').length;
+  const baja = equipos.filter(e => e.estado === 'baja').length;
+
+  // Monthly variation
+  const now = new Date();
+  const thisMonth = equipos.filter(e => {
+    if(!e.fechaIngreso) return false;
+    const d = new Date(e.fechaIngreso);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).length;
+  const lastMonth = equipos.filter(e => {
+    if(!e.fechaIngreso) return false;
+    const d = new Date(e.fechaIngreso);
+    const lm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    return d.getMonth() === lm.getMonth() && d.getFullYear() === lm.getFullYear();
+  }).length;
+  const variation = thisMonth - lastMonth;
+  const variationPct = lastMonth > 0 ? Math.round((variation / lastMonth) * 100) : (thisMonth > 0 ? 100 : 0);
+  const trendClass = variation > 0 ? 'up' : variation < 0 ? 'down' : 'neutral';
+  const trendIcon = variation > 0 ? 'fa-arrow-up' : variation < 0 ? 'fa-arrow-down' : 'fa-minus';
+  const activosPct = total > 0 ? Math.round((activos / total) * 100) : 0;
+
+  document.getElementById('execKpiGrid').innerHTML = `
+    <div class="exec-kpi kpi-accent-blue">
+      <div class="exec-kpi__header">
+        <div class="exec-kpi__icon blue"><i class="fas fa-boxes-stacked"></i></div>
+        <span class="exec-kpi__trend neutral"><i class="fas fa-layer-group"></i> ${personal.length} personas</span>
+      </div>
+      <div class="exec-kpi__value">${total}</div>
+      <div class="exec-kpi__label">Total Equipos</div>
+    </div>
+    <div class="exec-kpi kpi-accent-green">
+      <div class="exec-kpi__header">
+        <div class="exec-kpi__icon green"><i class="fas fa-dollar-sign"></i></div>
+      </div>
+      <div class="exec-kpi__value">${formatCurrency(totalValue)}</div>
+      <div class="exec-kpi__label">Valor Total Invertido</div>
+    </div>
+    <div class="exec-kpi kpi-accent-emerald">
+      <div class="exec-kpi__header">
+        <div class="exec-kpi__icon emerald"><i class="fas fa-check-circle"></i></div>
+        <span class="exec-kpi__trend up"><i class="fas fa-percentage"></i> ${activosPct}%</span>
+      </div>
+      <div class="exec-kpi__value">${activos}</div>
+      <div class="exec-kpi__label">Equipos Activos</div>
+    </div>
+    <div class="exec-kpi kpi-accent-orange">
+      <div class="exec-kpi__header">
+        <div class="exec-kpi__icon orange"><i class="fas fa-tools"></i></div>
+      </div>
+      <div class="exec-kpi__value">${mant}</div>
+      <div class="exec-kpi__label">En Mantenimiento</div>
+    </div>
+    <div class="exec-kpi kpi-accent-red">
+      <div class="exec-kpi__header">
+        <div class="exec-kpi__icon red"><i class="fas fa-power-off"></i></div>
+      </div>
+      <div class="exec-kpi__value">${baja}</div>
+      <div class="exec-kpi__label">Dados de Baja</div>
+    </div>
+    <div class="exec-kpi kpi-accent-purple">
+      <div class="exec-kpi__header">
+        <div class="exec-kpi__icon purple"><i class="fas fa-chart-line"></i></div>
+        <span class="exec-kpi__trend ${trendClass}"><i class="fas ${trendIcon}"></i> ${variation >= 0 ? '+' : ''}${variation}</span>
+      </div>
+      <div class="exec-kpi__value">${thisMonth}</div>
+      <div class="exec-kpi__label">Nuevos Este Mes</div>
+    </div>
+  `;
+}
+
+// --- Category Bar Chart ---
+function renderCategoryChart(equipos) {
+  destroyChart('chartCategory');
+  const cats = {
+    'PC Escritorio': equipos.filter(e => e.tipo === 'pcescritorio' || e.tipo === 'computador').length,
+    'Notebooks': equipos.filter(e => e.tipo === 'notebook').length,
+    'Impresoras': equipos.filter(e => e.tipo === 'impresora').length,
+    'Celulares': equipos.filter(e => e.tipo === 'celular').length,
+    'Tablets': equipos.filter(e => e.tipo === 'tablet').length,
+    'Servidores': equipos.filter(e => e.tipo === 'servidor').length
+  };
+  const labels = Object.keys(cats);
+  const data = Object.values(cats);
+  const colors = [CHART_COLORS.blueBg, CHART_COLORS.purpleBg, CHART_COLORS.orangeBg, CHART_COLORS.greenBg, CHART_COLORS.cyanBg, CHART_COLORS.redBg];
+
+  chartInstances['chartCategory'] = new Chart(document.getElementById('chartCategory'), {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Cantidad', data, backgroundColor: colors, borderColor: colors.map(c => c.replace('0.7', '1')), borderWidth: 1, borderRadius: 6, borderSkipped: false }] },
+    options: { ...CHART_DEFAULTS, plugins: { ...CHART_DEFAULTS.plugins, legend: { display: false } }, scales: { ...CHART_DEFAULTS.scales, y: { ...CHART_DEFAULTS.scales.y, beginAtZero: true, ticks: { ...CHART_DEFAULTS.scales.y.ticks, stepSize: 1 } } } }
+  });
+}
+
+// --- Distribution Donut Chart ---
+function renderDistributionChart(equipos) {
+  destroyChart('chartDistribution');
+  const cats = {
+    'PC Escritorio': equipos.filter(e => e.tipo === 'pcescritorio' || e.tipo === 'computador').length,
+    'Notebooks': equipos.filter(e => e.tipo === 'notebook').length,
+    'Impresoras': equipos.filter(e => e.tipo === 'impresora').length,
+    'Celulares': equipos.filter(e => e.tipo === 'celular').length,
+    'Tablets': equipos.filter(e => e.tipo === 'tablet').length,
+    'Servidores': equipos.filter(e => e.tipo === 'servidor').length
+  };
+  // Filter zero values
+  const filtered = Object.entries(cats).filter(([,v]) => v > 0);
+  const labels = filtered.map(([k]) => k);
+  const data = filtered.map(([,v]) => v);
+  const bgColors = [CHART_COLORS.blue, CHART_COLORS.purple, CHART_COLORS.orange, CHART_COLORS.green, CHART_COLORS.cyan, CHART_COLORS.red].slice(0, data.length);
+
+  chartInstances['chartDistribution'] = new Chart(document.getElementById('chartDistribution'), {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: bgColors, borderColor: 'rgba(18,18,26,0.8)', borderWidth: 3, hoverOffset: 8 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { ...CHART_DEFAULTS.plugins, legend: { ...CHART_DEFAULTS.plugins.legend, position: 'bottom' } } }
+  });
+}
+
+// --- Investment Timeline Chart ---
+function renderInvestmentChart(equipos) {
+  destroyChart('chartInvestment');
+  const withDate = equipos.filter(e => e.fechaIngreso && (parseFloat(e.precioEstimado) || 0) > 0);
+  if(withDate.length === 0) {
+    const body = document.getElementById('chartInvestment').parentElement;
+    body.innerHTML = '<div class="chart-empty"><i class="fas fa-chart-line"></i><p>Sin datos de inversión disponibles</p></div>';
+    return;
+  }
+  // Group by month
+  const monthlyMap = {};
+  withDate.forEach(e => {
+    const d = new Date(e.fechaIngreso);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    monthlyMap[key] = (monthlyMap[key] || 0) + (parseFloat(e.precioEstimado) || 0);
+  });
+  const sortedKeys = Object.keys(monthlyMap).sort();
+  const labels = sortedKeys.map(k => {
+    const [y, m] = k.split('-');
+    const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    return `${months[parseInt(m)-1]} ${y.slice(2)}`;
+  });
+  // Accumulated
+  let acc = 0;
+  const data = sortedKeys.map(k => { acc += monthlyMap[k]; return acc; });
+
+  chartInstances['chartInvestment'] = new Chart(document.getElementById('chartInvestment'), {
+    type: 'line',
+    data: { labels, datasets: [{
+      label: 'Inversión Acumulada', data, fill: true,
+      backgroundColor: 'rgba(16,185,129,0.1)', borderColor: CHART_COLORS.green,
+      borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: CHART_COLORS.green,
+      pointBorderColor: '#fff', pointBorderWidth: 1.5, tension: 0.4
+    }] },
+    options: { ...CHART_DEFAULTS, plugins: { ...CHART_DEFAULTS.plugins, legend: { display: false } }, scales: { ...CHART_DEFAULTS.scales, y: { ...CHART_DEFAULTS.scales.y, beginAtZero: true, ticks: { ...CHART_DEFAULTS.scales.y.ticks, callback: v => formatCurrency(v) } } } }
+  });
+}
+
+// --- Location Investment Chart ---
+function renderLocationChart(equipos) {
+  destroyChart('chartLocation');
+  const locMap = {};
+  equipos.forEach(e => {
+    const loc = e.ubicacion || 'Sin asignar';
+    locMap[loc] = (locMap[loc] || 0) + (parseFloat(e.precioEstimado) || 0);
+  });
+  const sorted = Object.entries(locMap).sort((a, b) => b[1] - a[1]);
+  const labels = sorted.map(([k]) => k);
+  const data = sorted.map(([,v]) => v);
+  const colors = [CHART_COLORS.orange, CHART_COLORS.blue, CHART_COLORS.purple, CHART_COLORS.green, CHART_COLORS.red, CHART_COLORS.cyan, CHART_COLORS.pink, CHART_COLORS.indigo];
+
+  chartInstances['chartLocation'] = new Chart(document.getElementById('chartLocation'), {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Inversión', data, backgroundColor: colors.slice(0, data.length).map(c => c + 'bb'), borderColor: colors.slice(0, data.length), borderWidth: 1, borderRadius: 6, borderSkipped: false }] },
+    options: { ...CHART_DEFAULTS, indexAxis: 'y', plugins: { ...CHART_DEFAULTS.plugins, legend: { display: false } }, scales: { x: { ...CHART_DEFAULTS.scales.x, beginAtZero: true, ticks: { ...CHART_DEFAULTS.scales.x.ticks, callback: v => formatCurrency(v) } }, y: CHART_DEFAULTS.scales.y } }
+  });
+}
+
+// --- Status Stacked Chart ---
+function renderStatusChart(equipos) {
+  destroyChart('chartStatus');
+  const types = ['PC Escritorio','Notebook','Impresora','Celular','Tablet','Servidor'];
+  const typeKeys = ['pcescritorio','notebook','impresora','celular','tablet','servidor'];
+  const activoData = typeKeys.map(t => equipos.filter(e => (e.tipo === t || (t === 'pcescritorio' && e.tipo === 'computador')) && e.estado === 'activo').length);
+  const mantData = typeKeys.map(t => equipos.filter(e => (e.tipo === t || (t === 'pcescritorio' && e.tipo === 'computador')) && e.estado === 'mantenimiento').length);
+  const bajaData = typeKeys.map(t => equipos.filter(e => (e.tipo === t || (t === 'pcescritorio' && e.tipo === 'computador')) && e.estado === 'baja').length);
+
+  chartInstances['chartStatus'] = new Chart(document.getElementById('chartStatus'), {
+    type: 'bar',
+    data: { labels: types, datasets: [
+      { label: 'Activo', data: activoData, backgroundColor: 'rgba(16,185,129,0.75)', borderRadius: 4, borderSkipped: false },
+      { label: 'Mantenimiento', data: mantData, backgroundColor: 'rgba(245,158,11,0.75)', borderRadius: 4, borderSkipped: false },
+      { label: 'Dado de baja', data: bajaData, backgroundColor: 'rgba(239,68,68,0.75)', borderRadius: 4, borderSkipped: false }
+    ] },
+    options: { ...CHART_DEFAULTS, plugins: { ...CHART_DEFAULTS.plugins, legend: { ...CHART_DEFAULTS.plugins.legend, position: 'bottom' } }, scales: { ...CHART_DEFAULTS.scales, x: { ...CHART_DEFAULTS.scales.x, stacked: true }, y: { ...CHART_DEFAULTS.scales.y, stacked: true, beginAtZero: true, ticks: { ...CHART_DEFAULTS.scales.y.ticks, stepSize: 1 } } } }
+  });
+}
+
+// --- Alerts ---
+function renderAlerts(equipos) {
+  const container = document.getElementById('alertsContainer');
+  const alerts = [];
+  const now = new Date();
+  const in90 = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+
+  // Warranties expiring soon
+  const expiringWarranty = equipos.filter(e => {
+    if(!e.garantiaHasta) return false;
+    const g = new Date(e.garantiaHasta);
+    return g >= now && g <= in90;
+  });
+  if(expiringWarranty.length > 0) {
+    alerts.push(`<div class="alert-item alert-warning"><div class="alert-item__icon"><i class="fas fa-shield-halved"></i></div><div class="alert-item__text"><div class="alert-item__title">Garantías por Vencer</div><div class="alert-item__desc">${expiringWarranty.length} equipo(s) con garantía venciendo en los próximos 90 días</div></div><div class="alert-item__count" style="color:#fbbf24">${expiringWarranty.length}</div></div>`);
+  }
+
+  // Unassigned equipment
+  const unassigned = equipos.filter(e => !e.empleadoId && e.estado === 'activo');
+  if(unassigned.length > 0) {
+    alerts.push(`<div class="alert-item alert-info"><div class="alert-item__icon"><i class="fas fa-user-slash"></i></div><div class="alert-item__text"><div class="alert-item__title">Equipos sin Asignar</div><div class="alert-item__desc">${unassigned.length} equipo(s) activo(s) sin responsable asignado</div></div><div class="alert-item__count" style="color:#60a5fa">${unassigned.length}</div></div>`);
+  }
+
+  // In maintenance
+  const inMaint = equipos.filter(e => e.estado === 'mantenimiento');
+  if(inMaint.length > 0) {
+    alerts.push(`<div class="alert-item alert-danger"><div class="alert-item__icon"><i class="fas fa-wrench"></i></div><div class="alert-item__text"><div class="alert-item__title">En Mantenimiento</div><div class="alert-item__desc">${inMaint.length} equipo(s) actualmente en reparación o mantenimiento</div></div><div class="alert-item__count" style="color:#f87171">${inMaint.length}</div></div>`);
+  }
+
+  // No price
+  const noPrice = equipos.filter(e => !e.precioEstimado && e.estado === 'activo');
+  if(noPrice.length > 0) {
+    alerts.push(`<div class="alert-item alert-success"><div class="alert-item__icon"><i class="fas fa-tag"></i></div><div class="alert-item__text"><div class="alert-item__title">Sin Precio Registrado</div><div class="alert-item__desc">${noPrice.length} equipo(s) sin valor de precio promedio asignado</div></div><div class="alert-item__count" style="color:#34d399">${noPrice.length}</div></div>`);
+  }
+
+  if(alerts.length === 0) {
+    container.innerHTML = '<div class="chart-empty" style="position:static;padding:40px 0"><i class="fas fa-check-circle" style="color:#34d399;opacity:0.6"></i><p>Todo en orden — sin alertas pendientes</p></div>';
+  } else {
+    container.innerHTML = `<div class="alerts-grid">${alerts.join('')}</div>`;
+  }
+}
+
+// --- Recent Assets Table ---
+function renderRecentAssets(equipos, personal) {
+  const container = document.getElementById('recentAssetsContainer');
+  const sorted = [...equipos].sort((a, b) => new Date(b.fechaIngreso || 0) - new Date(a.fechaIngreso || 0)).slice(0, 10);
+  if(sorted.length === 0) {
+    container.innerHTML = '<div class="chart-empty" style="position:static;padding:40px 0"><i class="fas fa-box-open"></i><p>No hay activos registrados</p></div>';
+    return;
+  }
+  const pMap = new Map(personal.map(p => [p.id, p]));
+  const rows = sorted.map(e => {
+    const emp = e.empleadoId ? pMap.get(e.empleadoId) : null;
+    const empName = emp ? `${emp.nombre} ${emp.apellido}` : '<span style="color:var(--text-secondary)">Sin asignar</span>';
+    const val = e.precioEstimado ? formatCurrency(e.precioEstimado) : '<span style="color:var(--text-secondary)">—</span>';
+    return `<tr>
+      <td><div class="td-type"><i class="fas ${getEquipmentIcon(e.tipo)}"></i>${e.tipo}</div></td>
+      <td class="td-equipo-name">${e.marca} ${e.modelo}</td>
+      <td style="color:var(--text-secondary)">${e.serial}</td>
+      <td>${empName}</td>
+      <td>${getStatusBadge(e.estado)}</td>
+      <td class="td-value">${val}</td>
+      <td>${formatDate(e.fechaIngreso)}</td>
+    </tr>`;
+  }).join('');
+  container.innerHTML = `<table class="recent-table"><thead><tr><th>Tipo</th><th>Equipo</th><th>Serial</th><th>Responsable</th><th>Estado</th><th>Valor</th><th>Ingreso</th></tr></thead><tbody>${rows}</tbody></table>`;
 }

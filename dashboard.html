@@ -7,6 +7,7 @@
   <meta name="description" content="Dashboard de inventario de activos IT">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -17,7 +18,10 @@
         <span class="sidebar__company" id="sidebarCompany">Empresa</span>
       </div>
       <nav class="sidebar__nav">
-        <a href="#" class="sidebar__link active" data-section="equipos" onclick="switchSection('equipos',this)">
+        <a href="#" class="sidebar__link active" data-section="dashboard" onclick="switchSection('dashboard',this)">
+          <i class="fas fa-chart-pie"></i> Dashboard
+        </a>
+        <a href="#" class="sidebar__link" data-section="equipos" onclick="switchSection('equipos',this)">
           <i class="fas fa-laptop"></i> Equipos
         </a>
         <a href="#" class="sidebar__link" data-section="personal" onclick="switchSection('personal',this)">
@@ -42,7 +46,7 @@
       <div class="topbar">
         <div style="display:flex;align-items:center;gap:12px">
           <button class="menu-toggle-dash" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-          <h1 class="topbar__title" id="pageTitle">Equipos</h1>
+          <h1 class="topbar__title" id="pageTitle">Dashboard</h1>
         </div>
         <div class="topbar__right">
           <div class="topbar__user"><i class="fas fa-user-circle"></i> <strong id="userName"></strong></div>
@@ -58,8 +62,72 @@
           <p>Inventario de Activos IT — <span id="printDate"></span></p>
         </div>
 
+        <!-- === EXECUTIVE DASHBOARD SECTION === -->
+        <div id="section-dashboard" class="dashboard-section">
+          <!-- Executive KPIs -->
+          <div class="exec-kpi-grid" id="execKpiGrid"></div>
+
+          <!-- Charts Row 1: Category + Distribution -->
+          <div class="dash-row cols-2">
+            <div class="chart-card">
+              <div class="chart-card__header">
+                <div class="chart-card__title"><i class="fas fa-chart-bar"></i> Equipos por Categoría</div>
+              </div>
+              <div class="chart-card__body"><canvas id="chartCategory"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-card__header">
+                <div class="chart-card__title"><i class="fas fa-chart-pie" style="background:rgba(139,92,246,0.12);color:#a78bfa"></i> Distribución de Activos</div>
+              </div>
+              <div class="chart-card__body"><canvas id="chartDistribution"></canvas></div>
+            </div>
+          </div>
+
+          <!-- Charts Row 2: Investment + Location -->
+          <div class="dash-row cols-2">
+            <div class="chart-card">
+              <div class="chart-card__header">
+                <div class="chart-card__title"><i class="fas fa-chart-line" style="background:rgba(16,185,129,0.12);color:#34d399"></i> Inversión Acumulada por Mes</div>
+              </div>
+              <div class="chart-card__body"><canvas id="chartInvestment"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-card__header">
+                <div class="chart-card__title"><i class="fas fa-map-marker-alt" style="background:rgba(245,158,11,0.12);color:#fbbf24"></i> Inversión por Ubicación</div>
+              </div>
+              <div class="chart-card__body"><canvas id="chartLocation"></canvas></div>
+            </div>
+          </div>
+
+          <!-- Row 3: Status Chart + Alerts -->
+          <div class="dash-row cols-2">
+            <div class="chart-card">
+              <div class="chart-card__header">
+                <div class="chart-card__title"><i class="fas fa-heartbeat" style="background:rgba(239,68,68,0.12);color:#f87171"></i> Estado Operacional</div>
+              </div>
+              <div class="chart-card__body"><canvas id="chartStatus"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-card__header">
+                <div class="chart-card__title"><i class="fas fa-bell" style="background:rgba(245,158,11,0.12);color:#fbbf24"></i> Alertas Prioritarias</div>
+              </div>
+              <div class="chart-card__body" style="min-height:auto;padding:14px 18px" id="alertsContainer"></div>
+            </div>
+          </div>
+
+          <!-- Row 4: Recent Assets -->
+          <div class="dash-row cols-1">
+            <div class="chart-card">
+              <div class="chart-card__header">
+                <div class="chart-card__title"><i class="fas fa-clock-rotate-left" style="background:rgba(99,102,241,0.12);color:#818cf8"></i> Activos Recientes</div>
+              </div>
+              <div class="chart-card__body" style="min-height:auto;padding:0;overflow-x:auto" id="recentAssetsContainer"></div>
+            </div>
+          </div>
+        </div>
+
         <!-- === EQUIPOS SECTION === -->
-        <div id="section-equipos">
+        <div id="section-equipos" style="display:none">
           <div class="kpi-grid" id="kpiGrid"></div>
 
           <div class="toolbar">
