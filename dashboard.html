@@ -305,9 +305,15 @@
           </div>
         </form>
       </div>
-      <div class="modal__footer">
-        <button class="btn btn-secondary" onclick="closeModal('modalEquipo')">Cancelar</button>
-        <button class="btn btn-primary" onclick="document.getElementById('equipoForm').requestSubmit()"><i class="fas fa-save"></i> Guardar</button>
+      <div class="modal__footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="form-group" style="margin-bottom: 0; display: flex; align-items: center; gap: 10px;">
+          <label style="margin-bottom: 0; color: var(--text-secondary);">Precio Promedio</label>
+          <input id="eqPrecio" type="number" step="0.01" placeholder="0.00" style="width: 120px; padding: 6px 12px;">
+        </div>
+        <div>
+          <button class="btn btn-secondary" onclick="closeModal('modalEquipo')">Cancelar</button>
+          <button class="btn btn-primary" onclick="document.getElementById('equipoForm').requestSubmit()"><i class="fas fa-save"></i> Guardar</button>
+        </div>
       </div>
     </div>
   </div>
