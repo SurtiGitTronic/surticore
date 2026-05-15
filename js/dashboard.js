@@ -68,8 +68,8 @@ eqSel.innerHTML='<option value="">Sin asignar</option>'+personal.map(p=>`<option
 async function renderKPIs(){
 const st=await DataManager.getStats(empresaId);
 document.getElementById('kpiGrid').innerHTML=`
-<div class="kpi-card kpi-blue"><div class="kpi-card__icon blue"><i class="fas fa-boxes-stacked"></i></div><div class="kpi-card__value">${st.total}</div><div class="kpi-card__label">Total Equipos</div></div>
-<div class="kpi-card kpi-purple"><div class="kpi-card__icon purple"><i class="fas fa-laptop"></i></div><div class="kpi-card__value">${st.computadores}</div><div class="kpi-card__label">Computadores</div></div>
+<div class="kpi-card kpi-purple"><div class="kpi-card__icon purple"><i class="fas fa-desktop"></i></div><div class="kpi-card__value">${st.pcescritorio}</div><div class="kpi-card__label">PC Escritorio</div></div>
+<div class="kpi-card kpi-blue"><div class="kpi-card__icon blue"><i class="fas fa-laptop"></i></div><div class="kpi-card__value">${st.notebooks}</div><div class="kpi-card__label">Notebooks</div></div>
 <div class="kpi-card kpi-orange"><div class="kpi-card__icon orange"><i class="fas fa-print"></i></div><div class="kpi-card__value">${st.impresoras}</div><div class="kpi-card__label">Impresoras</div></div>
 <div class="kpi-card kpi-green"><div class="kpi-card__icon green"><i class="fas fa-mobile-screen"></i></div><div class="kpi-card__value">${st.celulares}</div><div class="kpi-card__label">Celulares</div></div>
 <div class="kpi-card kpi-blue"><div class="kpi-card__icon blue"><i class="fas fa-tablet-screen-button"></i></div><div class="kpi-card__value">${st.tablets}</div><div class="kpi-card__label">Tablets</div></div>
@@ -223,6 +223,21 @@ document.getElementById('detail-software').innerHTML=`
 <div class="detail-section"><h4><i class="fas fa-folder"></i> Unidades de Red</h4><div class="detail-list">${units}</div></div>
 <div class="detail-section"><h4><i class="fas fa-print"></i> Impresoras Instaladas</h4><div class="detail-list">${prints}</div></div>`;
 
+if(e.tipo === 'pcescritorio' || e.tipo === 'notebook' || e.tipo === 'computador') {
+  document.getElementById('detailTabPerifericosBtn').style.display='';
+  document.getElementById('detail-perifericos').innerHTML=`<div class="detail-grid">
+  <div class="detail-item"><label>Teclado</label><span>${e.perTeclado||'—'}</span></div>
+  <div class="detail-item"><label>Mouse</label><span>${e.perMouse||'—'}</span></div>
+  <div class="detail-item"><label>Cámara WEB</label><span>${e.perCamara||'—'}</span></div>
+  <div class="detail-item"><label>Audífonos</label><span>${e.perAudifonos||'—'}</span></div>
+  <div class="detail-item"><label>Parlantes</label><span>${e.perParlantes||'—'}</span></div>
+  <div class="detail-item"><label>Monitor</label><span>${e.perMonitor||'—'}</span></div>
+  <div class="detail-item" style="grid-column:1/-1"><label>Otros</label><span>${e.perOtros||'—'}</span></div>
+  </div>`;
+} else {
+  document.getElementById('detailTabPerifericosBtn').style.display='none';
+}
+
 document.getElementById('detail-notas').innerHTML=`<p style="white-space:pre-wrap;font-size:.9rem">${e.notas||'Sin notas'}</p>`;
 // Reset to first tab
 document.querySelectorAll('#modalDetail .tab-btn').forEach((t,i)=>{t.classList.toggle('active',i===0);});
@@ -254,6 +269,10 @@ document.getElementById('eqAlmTotal').value=e.almacenamientoTotal||'';
 document.getElementById('eqOS').value=e.sistemaOperativo?e.sistemaOperativo.nombre:'';
 document.getElementById('eqOSVersion').value=e.sistemaOperativo?e.sistemaOperativo.version:'';
 document.getElementById('eqIP').value=e.direccionIP||'';document.getElementById('eqNotas').value=e.notas||'';
+document.getElementById('eqPerTeclado').value=e.perTeclado||'';document.getElementById('eqPerMouse').value=e.perMouse||'';
+document.getElementById('eqPerCamara').value=e.perCamara||'';document.getElementById('eqPerAudifonos').value=e.perAudifonos||'';
+document.getElementById('eqPerParlantes').value=e.perParlantes||'';document.getElementById('eqPerMonitor').value=e.perMonitor||'';
+document.getElementById('eqPerOtros').value=e.perOtros||'';
 createDynamicList('listProgramas',[{key:'nombre',placeholder:'Programa'},{key:'version',placeholder:'Versión'}],e.programasInstalados||[]);
 createDynamicList('listUnidades',[{key:'letra',placeholder:'Letra (Z:)'},{key:'ruta',placeholder:'Ruta (\\\\server\\share)'}],e.unidadesRed||[]);
 createDynamicList('listImpresoras',[{key:'nombre',placeholder:'Nombre'},{key:'tipo',placeholder:'Tipo (red/usb)'},{key:'ip',placeholder:'IP'}],e.impresorasInstaladas||[]);
@@ -270,12 +289,13 @@ const t=document.getElementById('eqTipo').value;
 document.getElementById('printerFields').style.display=t==='impresora'?'':'none';
 document.getElementById('phoneFields').style.display=t==='celular'?'':'none';
 document.getElementById('serverFields').style.display=t==='servidor'?'':'none';
+document.getElementById('tabPerifericosBtn').style.display=(t==='pcescritorio'||t==='notebook'||t==='computador')?'':'none';
 }
 
 async function saveEquipo(e){
 e.preventDefault();const id=document.getElementById('equipoId').value;
 const _v=v=>v||null; // Convert empty strings to null for DB compatibility
-const data={empresaId,tipo:document.getElementById('eqTipo').value,marca:document.getElementById('eqMarca').value,modelo:document.getElementById('eqModelo').value,serial:document.getElementById('eqSerial').value,estado:document.getElementById('eqEstado').value,empleadoId:_v(document.getElementById('eqEmpleado').value),ubicacion:document.getElementById('eqUbicacion').value,fechaCompra:_v(document.getElementById('eqFechaCompra').value),garantiaHasta:_v(document.getElementById('eqGarantia').value),procesador:document.getElementById('eqProcesador').value,ram:document.getElementById('eqRam').value,disco:document.getElementById('eqDisco').value,pantalla:document.getElementById('eqPantalla').value,tipoImpresion:document.getElementById('eqTipoImpresion').value,conectividad:document.getElementById('eqConectividad').value,imei:document.getElementById('eqImei').value,lineaTelefonica:document.getElementById('eqLinea').value,tipoServidor:document.getElementById('eqTipoServidor').value,almacenamientoTotal:document.getElementById('eqAlmTotal').value,sistemaOperativo:{nombre:document.getElementById('eqOS').value,version:document.getElementById('eqOSVersion').value},direccionIP:document.getElementById('eqIP').value,programasInstalados:getListItems('listProgramas').filter(p=>p.nombre),unidadesRed:getListItems('listUnidades').filter(u=>u.letra),impresorasInstaladas:getListItems('listImpresoras').filter(p=>p.nombre),notas:document.getElementById('eqNotas').value};
+const data={empresaId,tipo:document.getElementById('eqTipo').value,marca:document.getElementById('eqMarca').value,modelo:document.getElementById('eqModelo').value,serial:document.getElementById('eqSerial').value,estado:document.getElementById('eqEstado').value,empleadoId:_v(document.getElementById('eqEmpleado').value),ubicacion:document.getElementById('eqUbicacion').value,fechaCompra:_v(document.getElementById('eqFechaCompra').value),garantiaHasta:_v(document.getElementById('eqGarantia').value),procesador:document.getElementById('eqProcesador').value,ram:document.getElementById('eqRam').value,disco:document.getElementById('eqDisco').value,pantalla:document.getElementById('eqPantalla').value,tipoImpresion:document.getElementById('eqTipoImpresion').value,conectividad:document.getElementById('eqConectividad').value,imei:document.getElementById('eqImei').value,lineaTelefonica:document.getElementById('eqLinea').value,tipoServidor:document.getElementById('eqTipoServidor').value,almacenamientoTotal:document.getElementById('eqAlmTotal').value,sistemaOperativo:{nombre:document.getElementById('eqOS').value,version:document.getElementById('eqOSVersion').value},direccionIP:document.getElementById('eqIP').value,programasInstalados:getListItems('listProgramas').filter(p=>p.nombre),unidadesRed:getListItems('listUnidades').filter(u=>u.letra),impresorasInstaladas:getListItems('listImpresoras').filter(p=>p.nombre),notas:document.getElementById('eqNotas').value, perTeclado:document.getElementById('eqPerTeclado').value, perMouse:document.getElementById('eqPerMouse').value, perCamara:document.getElementById('eqPerCamara').value, perAudifonos:document.getElementById('eqPerAudifonos').value, perParlantes:document.getElementById('eqPerParlantes').value, perMonitor:document.getElementById('eqPerMonitor').value, perOtros:document.getElementById('eqPerOtros').value};
 if(id)await DataManager.updateEquipo(id,data);else await DataManager.createEquipo(data);
 closeModal('modalEquipo');await renderKPIs();await loadFilters();await loadSidebarLocations();await applyFilters();
 showNotification(id?'Equipo actualizado':'Equipo agregado','success');

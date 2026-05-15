@@ -156,7 +156,8 @@ const DataManager = {
     const equipos = await this.getEquipos(empresaId);
     return {
       total: equipos.length,
-      computadores: equipos.filter(e => e.tipo === 'computador').length,
+      pcescritorio: equipos.filter(e => e.tipo === 'pcescritorio' || e.tipo === 'computador').length,
+      notebooks: equipos.filter(e => e.tipo === 'notebook').length,
       impresoras: equipos.filter(e => e.tipo === 'impresora').length,
       celulares: equipos.filter(e => e.tipo === 'celular').length,
       tablets: equipos.filter(e => e.tipo === 'tablet').length,

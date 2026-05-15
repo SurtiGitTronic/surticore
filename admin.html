@@ -102,7 +102,7 @@
             <h2 style="font-size:1.1rem">Inventario Global</h2>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
               <select id="adminInvEmpresa" onchange="renderAdminInventario()" class="form-control" style="width:auto"><option value="">Todas las empresas</option></select>
-              <select id="adminInvTipo" onchange="renderAdminInventario()" class="form-control" style="width:auto"><option value="">Todos los tipos</option><option value="computador">Computadores</option><option value="impresora">Impresoras</option><option value="celular">Celulares</option><option value="tablet">Tablets</option><option value="servidor">Servidores</option></select>
+              <select id="adminInvTipo" onchange="renderAdminInventario()" class="form-control" style="width:auto"><option value="">Todos los tipos</option><option value="pcescritorio">PC Escritorio</option><option value="notebook">Notebooks</option><option value="impresora">Impresoras</option><option value="celular">Celulares</option><option value="tablet">Tablets</option><option value="servidor">Servidores</option></select>
               <button class="btn btn-secondary btn-sm" onclick="adminExportCSV()"><i class="fas fa-file-csv"></i> CSV</button>
               <button class="btn btn-primary btn-sm" onclick="openAdminEquipoModal()"><i class="fas fa-plus"></i> Agregar Equipo</button>
             </div>
@@ -247,10 +247,10 @@
       <div class="modal__body">
         <form id="adminEquipoForm" onsubmit="saveAdminEquipo(event)">
           <input type="hidden" id="aeqId">
-          <div class="tabs">
             <button type="button" class="tab-btn active" onclick="switchAdminTab(this,'aeq-general')">General</button>
             <button type="button" class="tab-btn" onclick="switchAdminTab(this,'aeq-hardware')">Hardware</button>
             <button type="button" class="tab-btn" onclick="switchAdminTab(this,'aeq-software')">Software y Red</button>
+            <button type="button" class="tab-btn" onclick="switchAdminTab(this,'aeq-perifericos')" id="aeqTabPerifericosBtn" style="display:none">Periféricos</button>
             <button type="button" class="tab-btn" onclick="switchAdminTab(this,'aeq-notas')">Notas</button>
           </div>
 
@@ -258,7 +258,7 @@
             <div class="form-group" style="margin-bottom:14px"><label>Empresa *</label><select id="aeqEmpresa" required onchange="loadAdminEquipoSelects()"><option value="">Seleccionar</option></select></div>
             <div class="form-row" style="margin-bottom:14px">
               <div class="form-group"><label>Tipo *</label>
-                <select id="aeqTipo" required onchange="toggleAdminTypeFields()"><option value="">Seleccionar</option><option value="computador">Computador</option><option value="impresora">Impresora</option><option value="celular">Celular</option><option value="tablet">Tablet</option><option value="servidor">Servidor</option></select>
+                <select id="aeqTipo" required onchange="toggleAdminTypeFields()"><option value="">Seleccionar</option><option value="pcescritorio">PC Escritorio</option><option value="notebook">Notebook</option><option value="impresora">Impresora</option><option value="celular">Celular</option><option value="tablet">Tablet</option><option value="servidor">Servidor</option></select>
               </div>
               <div class="form-group"><label>Estado *</label>
                 <select id="aeqEstado" required><option value="activo">Activo</option><option value="mantenimiento">Mantenimiento</option><option value="baja">Dado de baja</option></select>
@@ -334,6 +334,22 @@
               <div id="aeqListImpresoras"></div>
               <button type="button" class="add-list-btn" onclick="addDynamicItem('aeqListImpresoras')"><i class="fas fa-plus"></i> Agregar impresora</button>
             </div>
+          </div>
+
+          <div id="aeq-perifericos" class="tab-content">
+            <div class="form-row" style="margin-bottom:14px">
+              <div class="form-group"><label>Teclado</label><input id="aeqPerTeclado" placeholder="Ej: Logitech K120"></div>
+              <div class="form-group"><label>Mouse</label><input id="aeqPerMouse" placeholder="Ej: Logitech M185"></div>
+            </div>
+            <div class="form-row" style="margin-bottom:14px">
+              <div class="form-group"><label>Cámara WEB</label><input id="aeqPerCamara" placeholder="Ej: Logitech C920"></div>
+              <div class="form-group"><label>Audífonos</label><input id="aeqPerAudifonos" placeholder="Ej: Jabra Evolve 20"></div>
+            </div>
+            <div class="form-row" style="margin-bottom:14px">
+              <div class="form-group"><label>Parlantes</label><input id="aeqPerParlantes" placeholder="Ej: Genius SP-U115"></div>
+              <div class="form-group"><label>Monitor</label><input id="aeqPerMonitor" placeholder="Ej: Dell 24' P2419H"></div>
+            </div>
+            <div class="form-group" style="margin-bottom:14px"><label>Otros</label><input id="aeqPerOtros" placeholder="Ej: Hub USB, Soporte..."></div>
           </div>
 
           <div id="aeq-notas" class="tab-content">

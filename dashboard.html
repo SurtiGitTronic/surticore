@@ -70,7 +70,8 @@
             <div class="toolbar__filters">
               <select id="filterTipo" onchange="applyFilters()">
                 <option value="">Todos los tipos</option>
-                <option value="computador">Computadores</option>
+                <option value="pcescritorio">PC Escritorio</option>
+                <option value="notebook">Notebooks</option>
                 <option value="impresora">Impresoras</option>
                 <option value="celular">Celulares</option>
                 <option value="tablet">Tablets</option>
@@ -163,11 +164,13 @@
           <button class="tab-btn active" onclick="switchTab(this,'detail-general')">General</button>
           <button class="tab-btn" onclick="switchTab(this,'detail-hardware')">Hardware</button>
           <button class="tab-btn" onclick="switchTab(this,'detail-software')">Software y Red</button>
+          <button class="tab-btn" onclick="switchTab(this,'detail-perifericos')" id="detailTabPerifericosBtn" style="display:none">Periféricos</button>
           <button class="tab-btn" onclick="switchTab(this,'detail-notas')">Notas</button>
         </div>
         <div id="detail-general" class="tab-content active"></div>
         <div id="detail-hardware" class="tab-content"></div>
         <div id="detail-software" class="tab-content"></div>
+        <div id="detail-perifericos" class="tab-content"></div>
         <div id="detail-notas" class="tab-content"></div>
       </div>
       <div class="modal__footer">
@@ -192,13 +195,14 @@
             <button type="button" class="tab-btn active" onclick="switchTab(this,'form-general')">General</button>
             <button type="button" class="tab-btn" onclick="switchTab(this,'form-hardware')">Hardware</button>
             <button type="button" class="tab-btn" onclick="switchTab(this,'form-software')">Software y Red</button>
+            <button type="button" class="tab-btn" onclick="switchTab(this,'form-perifericos')" id="tabPerifericosBtn" style="display:none">Periféricos</button>
             <button type="button" class="tab-btn" onclick="switchTab(this,'form-notas')">Notas</button>
           </div>
 
           <div id="form-general" class="tab-content active">
             <div class="form-row" style="margin-bottom:14px">
               <div class="form-group"><label>Tipo *</label>
-                <select id="eqTipo" required onchange="toggleTypeFields()"><option value="">Seleccionar</option><option value="computador">Computador</option><option value="impresora">Impresora</option><option value="celular">Celular</option><option value="tablet">Tablet</option><option value="servidor">Servidor</option></select>
+                <select id="eqTipo" required onchange="toggleTypeFields()"><option value="">Seleccionar</option><option value="pcescritorio">PC Escritorio</option><option value="notebook">Notebook</option><option value="impresora">Impresora</option><option value="celular">Celular</option><option value="tablet">Tablet</option><option value="servidor">Servidor</option></select>
               </div>
               <div class="form-group"><label>Estado *</label>
                 <select id="eqEstado" required><option value="activo">Activo</option><option value="mantenimiento">Mantenimiento</option><option value="baja">Dado de baja</option></select>
@@ -279,6 +283,22 @@
               <div id="listImpresoras"></div>
               <button type="button" class="add-list-btn" onclick="addDynamicItem('listImpresoras')"><i class="fas fa-plus"></i> Agregar impresora</button>
             </div>
+          </div>
+
+          <div id="form-perifericos" class="tab-content">
+            <div class="form-row" style="margin-bottom:14px">
+              <div class="form-group"><label>Teclado</label><input id="eqPerTeclado" placeholder="Ej: Logitech K120"></div>
+              <div class="form-group"><label>Mouse</label><input id="eqPerMouse" placeholder="Ej: Logitech M185"></div>
+            </div>
+            <div class="form-row" style="margin-bottom:14px">
+              <div class="form-group"><label>Cámara WEB</label><input id="eqPerCamara" placeholder="Ej: Logitech C920"></div>
+              <div class="form-group"><label>Audífonos</label><input id="eqPerAudifonos" placeholder="Ej: Jabra Evolve 20"></div>
+            </div>
+            <div class="form-row" style="margin-bottom:14px">
+              <div class="form-group"><label>Parlantes</label><input id="eqPerParlantes" placeholder="Ej: Genius SP-U115"></div>
+              <div class="form-group"><label>Monitor</label><input id="eqPerMonitor" placeholder="Ej: Dell 24' P2419H"></div>
+            </div>
+            <div class="form-group" style="margin-bottom:14px"><label>Otros</label><input id="eqPerOtros" placeholder="Ej: Hub USB, Soporte..."></div>
           </div>
 
           <div id="form-notas" class="tab-content">

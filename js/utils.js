@@ -56,7 +56,7 @@ function debounce(fn, delay = 300) {
 
 function getEquipmentIcon(type) {
   const icons = {
-    computador: 'fa-laptop', impresora: 'fa-print',
+    computador: 'fa-desktop', pcescritorio: 'fa-desktop', notebook: 'fa-laptop', impresora: 'fa-print',
     celular: 'fa-mobile-screen', servidor: 'fa-server',
     tablet: 'fa-tablet-screen-button'
   };
