@@ -204,7 +204,7 @@ document.getElementById('detail-hardware').innerHTML=`<div class="detail-grid">
 ${e.procesador?`<div class="detail-item"><label>Procesador</label><span>${e.procesador}</span></div>`:''}
 ${e.ram?`<div class="detail-item"><label>RAM</label><span>${e.ram}</span></div>`:''}
 ${e.disco?`<div class="detail-item"><label>Disco</label><span>${e.disco}</span></div>`:''}
-${e.pantalla?`<div class="detail-item"><label>Pantalla</label><span>${e.pantalla}</span></div>`:''}
+${e.tarjetaVideo?`<div class="detail-item"><label>Tarjeta de Video</label><span>${e.tarjetaVideo}</span></div>`:''}
 ${e.tipoImpresion?`<div class="detail-item"><label>Tipo Impresión</label><span>${e.tipoImpresion}</span></div>`:''}
 ${e.conectividad?`<div class="detail-item"><label>Conectividad</label><span>${e.conectividad}</span></div>`:''}
 ${e.imei?`<div class="detail-item"><label>IMEI</label><span>${e.imei}</span></div>`:''}
@@ -262,7 +262,8 @@ document.getElementById('eqSerial').value=e.serial;document.getElementById('eqEm
 document.getElementById('eqUbicacion').value=e.ubicacion||'';document.getElementById('eqFechaCompra').value=e.fechaCompra||'';
 document.getElementById('eqGarantia').value=e.garantiaHasta||'';document.getElementById('eqProcesador').value=e.procesador||'';
 document.getElementById('eqRam').value=e.ram||'';document.getElementById('eqDisco').value=e.disco||'';
-document.getElementById('eqPantalla').value=e.pantalla||'';document.getElementById('eqTipoImpresion').value=e.tipoImpresion||'';
+document.getElementById('eqTarjetaVideo').value=e.tarjetaVideo||'';
+document.getElementById('eqTipoImpresion').value=e.tipoImpresion||'';
 document.getElementById('eqConectividad').value=e.conectividad||'';document.getElementById('eqImei').value=e.imei||'';
 document.getElementById('eqLinea').value=e.lineaTelefonica||'';document.getElementById('eqTipoServidor').value=e.tipoServidor||'';
 document.getElementById('eqAlmTotal').value=e.almacenamientoTotal||'';
@@ -286,8 +287,9 @@ toggleTypeFields();openModal('modalEquipo');
 
 function toggleTypeFields(){
 const t=document.getElementById('eqTipo').value;
+document.getElementById('pcFields').style.display=(t==='pcescritorio'||t==='notebook'||t==='servidor'||t==='computador')?'':'none';
 document.getElementById('printerFields').style.display=t==='impresora'?'':'none';
-document.getElementById('phoneFields').style.display=t==='celular'?'':'none';
+document.getElementById('phoneFields').style.display=(t==='celular'||t==='tablet')?'':'none';
 document.getElementById('serverFields').style.display=t==='servidor'?'':'none';
 document.getElementById('tabPerifericosBtn').style.display=(t==='pcescritorio'||t==='notebook'||t==='computador')?'':'none';
 }
@@ -295,7 +297,7 @@ document.getElementById('tabPerifericosBtn').style.display=(t==='pcescritorio'||
 async function saveEquipo(e){
 e.preventDefault();const id=document.getElementById('equipoId').value;
 const _v=v=>v||null; // Convert empty strings to null for DB compatibility
-const data={empresaId,tipo:document.getElementById('eqTipo').value,marca:document.getElementById('eqMarca').value,modelo:document.getElementById('eqModelo').value,serial:document.getElementById('eqSerial').value,estado:document.getElementById('eqEstado').value,empleadoId:_v(document.getElementById('eqEmpleado').value),ubicacion:document.getElementById('eqUbicacion').value,fechaCompra:_v(document.getElementById('eqFechaCompra').value),garantiaHasta:_v(document.getElementById('eqGarantia').value),procesador:document.getElementById('eqProcesador').value,ram:document.getElementById('eqRam').value,disco:document.getElementById('eqDisco').value,pantalla:document.getElementById('eqPantalla').value,tipoImpresion:document.getElementById('eqTipoImpresion').value,conectividad:document.getElementById('eqConectividad').value,imei:document.getElementById('eqImei').value,lineaTelefonica:document.getElementById('eqLinea').value,tipoServidor:document.getElementById('eqTipoServidor').value,almacenamientoTotal:document.getElementById('eqAlmTotal').value,sistemaOperativo:{nombre:document.getElementById('eqOS').value,version:document.getElementById('eqOSVersion').value},direccionIP:document.getElementById('eqIP').value,programasInstalados:getListItems('listProgramas').filter(p=>p.nombre),unidadesRed:getListItems('listUnidades').filter(u=>u.letra),impresorasInstaladas:getListItems('listImpresoras').filter(p=>p.nombre),notas:document.getElementById('eqNotas').value, perTeclado:document.getElementById('eqPerTeclado').value, perMouse:document.getElementById('eqPerMouse').value, perCamara:document.getElementById('eqPerCamara').value, perAudifonos:document.getElementById('eqPerAudifonos').value, perParlantes:document.getElementById('eqPerParlantes').value, perMonitor:document.getElementById('eqPerMonitor').value, perOtros:document.getElementById('eqPerOtros').value};
+const data={empresaId,tipo:document.getElementById('eqTipo').value,marca:document.getElementById('eqMarca').value,modelo:document.getElementById('eqModelo').value,serial:document.getElementById('eqSerial').value,estado:document.getElementById('eqEstado').value,empleadoId:_v(document.getElementById('eqEmpleado').value),ubicacion:document.getElementById('eqUbicacion').value,fechaCompra:_v(document.getElementById('eqFechaCompra').value),garantiaHasta:_v(document.getElementById('eqGarantia').value),procesador:document.getElementById('eqProcesador').value,ram:document.getElementById('eqRam').value,disco:document.getElementById('eqDisco').value,tarjetaVideo:document.getElementById('eqTarjetaVideo').value,tipoImpresion:document.getElementById('eqTipoImpresion').value,conectividad:document.getElementById('eqConectividad').value,imei:document.getElementById('eqImei').value,lineaTelefonica:document.getElementById('eqLinea').value,tipoServidor:document.getElementById('eqTipoServidor').value,almacenamientoTotal:document.getElementById('eqAlmTotal').value,sistemaOperativo:{nombre:document.getElementById('eqOS').value,version:document.getElementById('eqOSVersion').value},direccionIP:document.getElementById('eqIP').value,programasInstalados:getListItems('listProgramas').filter(p=>p.nombre),unidadesRed:getListItems('listUnidades').filter(u=>u.letra),impresorasInstaladas:getListItems('listImpresoras').filter(p=>p.nombre),notas:document.getElementById('eqNotas').value, perTeclado:document.getElementById('eqPerTeclado').value, perMouse:document.getElementById('eqPerMouse').value, perCamara:document.getElementById('eqPerCamara').value, perAudifonos:document.getElementById('eqPerAudifonos').value, perParlantes:document.getElementById('eqPerParlantes').value, perMonitor:document.getElementById('eqPerMonitor').value, perOtros:document.getElementById('eqPerOtros').value};
 if(id)await DataManager.updateEquipo(id,data);else await DataManager.createEquipo(data);
 closeModal('modalEquipo');await renderKPIs();await loadFilters();await loadSidebarLocations();await applyFilters();
 showNotification(id?'Equipo actualizado':'Equipo agregado','success');
