@@ -1,9 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
-:root{--bg-primary:#0a0a0f;--bg-secondary:rgba(18,18,26,0.65);--bg-card:rgba(26,26,46,0.55);--bg-glass:rgba(26,26,46,0.7);--text-primary:#f0f0f5;--text-secondary:#a0a0b8;--accent:#c41230;--accent-light:#e8143a;--accent-dark:#8b0d22;--accent-glow:rgba(196,18,48,0.3);--gray-700:rgba(42,42,62,0.6);--gray-600:rgba(58,58,82,0.6);--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--info:#3b82f6;--radius:16px;--radius-sm:8px;--shadow:0 8px 32px rgba(0,0,0,0.4);--transition:all 0.3s cubic-bezier(0.4,0,0.2,1);--sidebar-width:260px}
+:root{--bg-primary:#0a0a0f;--bg-secondary:rgba(18,18,26,0.75);--bg-card:rgba(18,18,26,0.5);--bg-glass:rgba(18,18,26,0.6);--text-primary:#f0f0f5;--text-secondary:#a0a0b8;--accent:#c41230;--accent-light:#e8143a;--accent-dark:#8b0d22;--accent-glow:rgba(196,18,48,0.3);--gray-700:rgba(42,42,62,0.6);--gray-600:rgba(58,58,82,0.6);--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--info:#3b82f6;--radius:16px;--radius-sm:8px;--shadow:0 8px 32px rgba(0,0,0,0.4);--transition:all 0.3s cubic-bezier(0.4,0,0.2,1);--sidebar-width:260px}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;font-size:16px}
 body{font-family:'Poppins',sans-serif;background:url('../DesignInspo/Imagen%20Principal.jpg') center/cover no-repeat fixed;color:var(--text-primary);line-height:1.6;overflow-x:hidden}
-body::before{content:'';position:fixed;inset:0;background:rgba(10,10,15,0.65);backdrop-filter:blur(4px);z-index:-1}
+body::before{content:'';position:fixed;inset:0;background:rgba(255,255,255,0.08);backdrop-filter:blur(12px);z-index:-1}
 h1,h2,h3,h4,h5,h6{font-family:'Outfit',sans-serif;font-weight:700;line-height:1.2}
 a{text-decoration:none;color:inherit;transition:var(--transition)}
 img{max-width:100%;display:block}
@@ -785,6 +785,11 @@ input[type="color"]{width:50px;height:36px;border:none;border-radius:var(--radiu
   transform: translate(-50%, -50%);
   z-index: 2;
   mix-blend-mode: screen;
+}
+#mouse-glow.glow-subtle {
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
 }
 
 @media(max-width: 768px) {
