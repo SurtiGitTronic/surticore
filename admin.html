@@ -15,6 +15,7 @@
         <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
           <span class="sidebar__company">Administrador</span>
           <span id="sidebarAdminName" style="font-size: 0.9rem; color: var(--text-secondary); font-weight: 500;"></span>
+          <span id="sidebarAdminCargo" style="font-size: 0.75rem; color: var(--text-secondary); opacity: 0.8;"></span>
         </div>
       </div>
       <nav class="sidebar__nav">
@@ -192,7 +193,10 @@
             <div class="form-group"><label>Nombre completo *</label><input id="usrNombre" required placeholder="Nombre del usuario"></div>
             <div class="form-group"><label>Rol *</label><select id="usrRol" required onchange="toggleUsrRole()"><option value="cliente">Cliente</option><option value="admin">Administrador</option></select></div>
           </div>
-          <div class="form-group" style="margin-bottom:14px" id="usrEmpresaGroup"><label>Empresa *</label><select id="usrEmpresa" required><option value="">Seleccionar</option></select></div>
+          <div class="form-row" style="margin-bottom:14px">
+            <div class="form-group" id="usrEmpresaGroup"><label>Empresa *</label><select id="usrEmpresa" required><option value="">Seleccionar</option></select></div>
+            <div class="form-group" id="usrCargoGroup" style="display:none;"><label>Cargo</label><input id="usrCargo" placeholder="Ej: Gerente de TI"></div>
+          </div>
           <div class="form-group" style="margin-bottom:14px">
             <label>Permisos</label>
             <div style="display:flex;gap:15px;margin-top:8px">

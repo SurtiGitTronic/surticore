@@ -13,7 +13,7 @@ const AuthManager = {
     if (error || !users || users.length === 0) return null;
     const user = users[0];
     
-    const session = { userId: user.id, username: user.username, nombre: user.nombre, rol: user.rol, empresaId: user.empresaId, permisos: user.permisos };
+    const session = { userId: user.id, username: user.username, nombre: user.nombre, rol: user.rol, empresaId: user.empresaId, permisos: user.permisos, cargo: user.cargo };
     sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
     return session;
   },
