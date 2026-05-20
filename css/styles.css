@@ -509,7 +509,7 @@ input[type="color"]{width:50px;height:36px;border:none;border-radius:var(--radiu
   margin-bottom: 12px !important;
 }
 .footer-logo-img {
-  max-width: 220px;
+  max-width: 160px;
   height: auto;
 }
 
