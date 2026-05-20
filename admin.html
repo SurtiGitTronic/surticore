@@ -12,7 +12,10 @@
     <aside class="sidebar" id="sidebar">
       <div class="sidebar__header">
         <img src="DesignInspo/Logo%20Surtitronic.png" alt="Surtitronic" class="sidebar__logo" onerror="this.style.display='none'">
-        <span class="sidebar__company">Surtitronic Admin</span>
+        <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
+          <span class="sidebar__company">Administrador</span>
+          <span id="sidebarAdminName" style="font-size: 0.9rem; color: var(--text-secondary); font-weight: 500;"></span>
+        </div>
       </div>
       <nav class="sidebar__nav">
         <a href="#" class="sidebar__link active" onclick="switchAdminSection('dashboard',this)"><i class="fas fa-chart-pie"></i> Dashboard</a>

@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', async ()=>{
 if(!AuthManager.requireAdmin())return;
 const s=AuthManager.getSession();
 document.getElementById('adminName').textContent=s.nombre;
+const sidebarName = document.getElementById('sidebarAdminName');
+if (sidebarName) sidebarName.textContent = s.nombre;
 await renderAll();
 });
 
