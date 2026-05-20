@@ -394,6 +394,7 @@ document.getElementById('aeqPrinterFields').style.display=t==='impresora'?'':'no
 document.getElementById('aeqPhoneFields').style.display=(t==='celular'||t==='tablet')?'':'none';
 document.getElementById('aeqServerFields').style.display=t==='servidor'?'':'none';
 document.getElementById('aeqTabPerifericosBtn').style.display=(t==='pcescritorio'||t==='notebook'||t==='computador')?'':'none';
+document.getElementById('aeqTabSoftwareBtn').style.display=t==='impresora'?'none':'';
 }
 
 async function loadAdminEquipoSelects(){

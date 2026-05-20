@@ -231,6 +231,12 @@ document.getElementById('detail-software').innerHTML=`
 <div class="detail-section"><h4><i class="fas fa-folder"></i> Unidades de Red</h4><div class="detail-list">${units}</div></div>
 <div class="detail-section"><h4><i class="fas fa-print"></i> Impresoras Instaladas</h4><div class="detail-list">${prints}</div></div>`;
 
+if(e.tipo === 'impresora') {
+  document.getElementById('detailTabSoftwareBtn').style.display='none';
+} else {
+  document.getElementById('detailTabSoftwareBtn').style.display='';
+}
+
 if(e.tipo === 'pcescritorio' || e.tipo === 'notebook' || e.tipo === 'computador') {
   document.getElementById('detailTabPerifericosBtn').style.display='';
   document.getElementById('detail-perifericos').innerHTML=`<div class="detail-grid">
@@ -301,6 +307,7 @@ document.getElementById('printerFields').style.display=t==='impresora'?'':'none'
 document.getElementById('phoneFields').style.display=(t==='celular'||t==='tablet')?'':'none';
 document.getElementById('serverFields').style.display=t==='servidor'?'':'none';
 document.getElementById('tabPerifericosBtn').style.display=(t==='pcescritorio'||t==='notebook'||t==='computador')?'':'none';
+document.getElementById('tabSoftwareBtn').style.display=t==='impresora'?'none':'';
 }
 
 async function saveEquipo(e){
