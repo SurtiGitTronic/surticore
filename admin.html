@@ -11,7 +11,7 @@
   <div class="app-layout">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar__header">
-        <img src="DesignInspo/Logo%20Surtitronic.png" alt="Surtitronic" class="sidebar__logo" onerror="this.style.display='none'">
+        <img src="DesignInspo/03-SURTICORE-05 BLANCO.png" alt="SURTICORE" class="sidebar__logo" onerror="this.style.display='none'" style="max-width: 150px; margin-bottom: 8px; border-radius: 0; box-shadow: none;">
         <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
           <span class="sidebar__company">Administrador</span>
           <span id="sidebarAdminName" style="font-size: 0.9rem; color: var(--text-secondary); font-weight: 500;"></span>
@@ -35,9 +35,7 @@
           <button class="menu-toggle-dash" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="fas fa-bars"></i></button>
           <h1 class="topbar__title" id="adminPageTitle">Dashboard</h1>
         </div>
-        <div class="topbar__logo-center" style="position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none;">
-          <img src="DesignInspo/03-SURTICORE-05 BLANCO.png" alt="SURTICORE" style="height: 48px; object-fit: contain;">
-        </div>
+
         <div class="topbar__right">
           <div class="topbar__user"><i class="fas fa-user-shield"></i> <strong id="adminName"></strong></div>
           <button class="btn btn-outline btn-sm" onclick="AuthManager.logout()"><i class="fas fa-sign-out-alt"></i> Salir</button>
