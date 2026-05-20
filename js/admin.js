@@ -8,7 +8,7 @@ document.getElementById('adminName').textContent=s.nombre;
 const sidebarName = document.getElementById('sidebarAdminName');
 if (sidebarName) sidebarName.textContent = s.nombre;
 const sidebarCargo = document.getElementById('sidebarAdminCargo');
-if (sidebarCargo) sidebarCargo.textContent = s.cargo || '';
+if (sidebarCargo) sidebarCargo.textContent = (s.permisos && s.permisos.cargo) ? s.permisos.cargo : '';
 await renderAll();
 });
 
@@ -224,7 +224,7 @@ document.getElementById('usrPassword').value=u.password;document.getElementById(
 document.getElementById('usrRol').value=u.rol||'cliente';
 if(typeof toggleUsrRole === 'function') toggleUsrRole();
 document.getElementById('usrEmpresa').value=u.empresaId||'';
-if(document.getElementById('usrCargo')) document.getElementById('usrCargo').value=u.cargo||'';
+if(document.getElementById('usrCargo')) document.getElementById('usrCargo').value=(u.permisos&&u.permisos.cargo)?u.permisos.cargo:'';
 document.getElementById('usrCanCreate').checked=u.permisos.canCreate;
 document.getElementById('usrCanEdit').checked=u.permisos.canEdit;
 document.getElementById('usrCanDelete').checked=u.permisos.canDelete;
@@ -247,7 +247,7 @@ e.preventDefault();const id=document.getElementById('usrId').value;
 const rol = document.getElementById('usrRol').value;
 const empresaId = rol === 'admin' ? null : document.getElementById('usrEmpresa').value;
 const cargo = rol === 'admin' ? document.getElementById('usrCargo').value : null;
-const data={username:document.getElementById('usrUsername').value,password:document.getElementById('usrPassword').value,nombre:document.getElementById('usrNombre').value,empresaId,rol,cargo,permisos:{canCreate:document.getElementById('usrCanCreate').checked,canEdit:document.getElementById('usrCanEdit').checked,canDelete:document.getElementById('usrCanDelete').checked,canManageUbicaciones:document.getElementById('usrCanManageUbicaciones').checked},activo:document.getElementById('usrActivo').checked};
+const data={username:document.getElementById('usrUsername').value,password:document.getElementById('usrPassword').value,nombre:document.getElementById('usrNombre').value,empresaId,rol,permisos:{canCreate:document.getElementById('usrCanCreate').checked,canEdit:document.getElementById('usrCanEdit').checked,canDelete:document.getElementById('usrCanDelete').checked,canManageUbicaciones:document.getElementById('usrCanManageUbicaciones').checked,cargo},activo:document.getElementById('usrActivo').checked};
 if(id)await DataManager.updateUser(id,data);else await DataManager.createUser(data);
 closeModal('modalUsuario');await renderUsuarios();showNotification(id?'Usuario actualizado':'Usuario creado','success');
 }
