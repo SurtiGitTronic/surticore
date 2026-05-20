@@ -12,6 +12,11 @@ const emp=await DataManager.getEmpresa(empresaId);
 if(emp){
   document.getElementById('sidebarCompany').textContent=emp.nombre;
   document.getElementById('printCompany').textContent=emp.nombre;
+  
+  const sidebarUserName = document.getElementById('sidebarUserName');
+  if(sidebarUserName) sidebarUserName.textContent = s.nombre;
+  const sidebarUserCargo = document.getElementById('sidebarUserCargo');
+  if(sidebarUserCargo) sidebarUserCargo.textContent = s.cargo || 'Cliente';
   if(emp.logo){document.getElementById('sidebarLogo').src=emp.logo;document.getElementById('sidebarLogo').style.display='block';document.getElementById('printLogo').src=emp.logo;}
   if(emp.colorPrimario)applyCompanyTheme(emp.colorPrimario);
   const label = emp.etiquetaUbicacion || 'Sedes';

@@ -14,8 +14,12 @@
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar__header">
-        <img id="sidebarLogo" src="" alt="Logo" class="sidebar__logo" style="display:none">
-        <span class="sidebar__company" id="sidebarCompany">Empresa</span>
+        <img id="sidebarLogo" src="" alt="Logo" class="sidebar__logo" style="display:none; max-height: 80px; object-fit: contain;">
+        <div style="display: flex; flex-direction: column; gap: 4px; align-items: center; margin-top: 8px;">
+          <span class="sidebar__company" id="sidebarCompany" style="font-size: 1.15rem; font-weight: 700;">Empresa</span>
+          <span id="sidebarUserName" style="font-size: 0.9rem; color: var(--text-secondary); font-weight: 500;"></span>
+          <span id="sidebarUserCargo" style="font-size: 0.75rem; color: var(--text-secondary); opacity: 0.8;"></span>
+        </div>
       </div>
       <nav class="sidebar__nav">
         <a href="#" class="sidebar__link active" data-section="dashboard" onclick="switchSection('dashboard',this)">
