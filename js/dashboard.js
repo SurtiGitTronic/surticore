@@ -133,14 +133,14 @@ const emp=e.empleadoId?pMap.get(e.empleadoId):null;
 const empName=emp?`${emp.nombre} ${emp.apellido}`:'Sin asignar';
 const empCargo=emp?emp.cargo:'';
 return`<tr>
-<td><div class="td-type"><i class="fas ${getEquipmentIcon(e.tipo)}"></i>${e.tipo}</div></td>
-<td>${e.marca} ${e.modelo}</td>
-<td>${e.serial}</td>
-<td><div class="td-employee"><strong>${empName}</strong><span>${empCargo}</span></div></td>
-<td>${e.ubicacion||'—'}</td>
-<td>${getStatusBadge(e.estado)}</td>
-<td>${formatDate(e.fechaIngreso)}</td>
-<td class="td-actions">
+<td data-label="Tipo"><div class="td-type"><i class="fas ${getEquipmentIcon(e.tipo)}"></i>${e.tipo}</div></td>
+<td data-label="Equipo">${e.marca} ${e.modelo}</td>
+<td data-label="Serial">${e.serial}</td>
+<td data-label="Asignado a"><div class="td-employee"><strong>${empName}</strong><span>${empCargo}</span></div></td>
+<td data-label="Ubicación">${e.ubicacion||'—'}</td>
+<td data-label="Estado">${getStatusBadge(e.estado)}</td>
+<td data-label="Ingreso">${formatDate(e.fechaIngreso)}</td>
+<td class="td-actions" data-label="">
 <button class="btn-icon" onclick="viewEquipo('${e.id}')" title="Ver detalle"><i class="fas fa-eye"></i></button>
 ${AuthManager.canEdit()?`<button class="btn-icon" onclick="openEquipoModal('${e.id}')" title="Editar"><i class="fas fa-edit"></i></button>`:''}
 ${AuthManager.canDelete()?`<button class="btn-icon btn-danger-icon" onclick="deleteEquipo('${e.id}')" title="Eliminar"><i class="fas fa-trash"></i></button>`:''}
@@ -336,9 +336,9 @@ const eqMap = equipos.reduce((acc, eq) => { if(eq.empleadoId) acc[eq.empleadoId]
 tbody.innerHTML=personal.map(p=>{
 const eqCount = eqMap[p.id] || 0;
 return`<tr>
-<td>${p.nombre}</td><td>${p.apellido}</td><td>${p.cargo||'—'}</td><td>${p.departamento||'—'}</td><td>${p.email||'—'}</td><td>${p.telefono||'—'}</td>
-<td><button class="btn btn-sm btn-outline" onclick="viewEmpleadoEquipos('${p.id}')"><i class="fas fa-laptop"></i> ${eqCount}</button></td>
-<td class="td-actions">
+<td data-label="Nombre">${p.nombre}</td><td data-label="Apellido">${p.apellido}</td><td data-label="Cargo">${p.cargo||'—'}</td><td data-label="Departamento">${p.departamento||'—'}</td><td data-label="Email">${p.email||'—'}</td><td data-label="Teléfono">${p.telefono||'—'}</td>
+<td data-label="Equipos"><button class="btn btn-sm btn-outline" onclick="viewEmpleadoEquipos('${p.id}')"><i class="fas fa-laptop"></i> ${eqCount}</button></td>
+<td class="td-actions" data-label="">
 ${AuthManager.canEdit()?`<button class="btn-icon" onclick="openPersonalModal('${p.id}')"><i class="fas fa-edit"></i></button>`:''}
 ${AuthManager.canDelete()?`<button class="btn-icon btn-danger-icon" onclick="deletePersonal('${p.id}')"><i class="fas fa-trash"></i></button>`:''}
 </td></tr>`;}).join('');
@@ -366,7 +366,7 @@ async function viewEmpleadoEquipos(id){
 const emp=await DataManager.getEmpleado(id),eqs=await DataManager.getEquiposByEmpleado(id);
 document.getElementById('empleadoEquiposTitle').textContent=`Equipos de ${emp.nombre} ${emp.apellido}`;
 if(!eqs.length){document.getElementById('empleadoEquiposBody').innerHTML='<div class="table-empty"><i class="fas fa-box-open"></i><p>No tiene equipos asignados</p></div>';}
-else{document.getElementById('empleadoEquiposBody').innerHTML='<div class="table-wrapper"><table><thead><tr><th>Tipo</th><th>Equipo</th><th>Serial</th><th>Estado</th><th>Ubicación</th></tr></thead><tbody>'+eqs.map(e=>`<tr><td><div class="td-type"><i class="fas ${getEquipmentIcon(e.tipo)}"></i>${e.tipo}</div></td><td>${e.marca} ${e.modelo}</td><td>${e.serial}</td><td>${getStatusBadge(e.estado)}</td><td>${e.ubicacion||'—'}</td></tr>`).join('')+'</tbody></table></div>';}
+else{document.getElementById('empleadoEquiposBody').innerHTML='<div class="table-wrapper"><table><thead><tr><th>Tipo</th><th>Equipo</th><th>Serial</th><th>Estado</th><th>Ubicación</th></tr></thead><tbody>'+eqs.map(e=>`<tr><td data-label="Tipo"><div class="td-type"><i class="fas ${getEquipmentIcon(e.tipo)}"></i>${e.tipo}</div></td><td data-label="Equipo">${e.marca} ${e.modelo}</td><td data-label="Serial">${e.serial}</td><td data-label="Estado">${getStatusBadge(e.estado)}</td><td data-label="Ubicación">${e.ubicacion||'—'}</td></tr>`).join('')+'</tbody></table></div>';}
 openModal('modalEmpleadoEquipos');
 }
 
@@ -473,7 +473,18 @@ parent.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));btn
 parent.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
 document.getElementById(tabId).classList.add('active');
 }
-function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+function toggleSidebar(){
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  sidebar.classList.toggle('open');
+  if(overlay) overlay.classList.toggle('active');
+  document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+}
+// Close sidebar on overlay click
+document.addEventListener('DOMContentLoaded', () => {
+  const overlay = document.getElementById('sidebarOverlay');
+  if(overlay) overlay.addEventListener('click', toggleSidebar);
+});
 
 // === EXPORTS ===
 async function exportCSV(){
@@ -790,13 +801,13 @@ function renderRecentAssets(equipos, personal) {
     const empName = emp ? `${emp.nombre} ${emp.apellido}` : '<span style="color:var(--text-secondary)">Sin asignar</span>';
     const val = e.precioEstimado ? formatCurrency(e.precioEstimado) : '<span style="color:var(--text-secondary)">—</span>';
     return `<tr>
-      <td><div class="td-type"><i class="fas ${getEquipmentIcon(e.tipo)}"></i>${e.tipo}</div></td>
-      <td class="td-equipo-name">${e.marca} ${e.modelo}</td>
-      <td style="color:var(--text-secondary)">${e.serial}</td>
-      <td>${empName}</td>
-      <td>${getStatusBadge(e.estado)}</td>
-      <td class="td-value">${val}</td>
-      <td>${formatDate(e.fechaIngreso)}</td>
+      <td data-label="Tipo"><div class="td-type"><i class="fas ${getEquipmentIcon(e.tipo)}"></i>${e.tipo}</div></td>
+      <td data-label="Equipo" class="td-equipo-name">${e.marca} ${e.modelo}</td>
+      <td data-label="Serial" style="color:var(--text-secondary)">${e.serial}</td>
+      <td data-label="Responsable">${empName}</td>
+      <td data-label="Estado">${getStatusBadge(e.estado)}</td>
+      <td data-label="Valor" class="td-value">${val}</td>
+      <td data-label="Ingreso">${formatDate(e.fechaIngreso)}</td>
     </tr>`;
   }).join('');
   container.innerHTML = `<table class="recent-table"><thead><tr><th>Tipo</th><th>Equipo</th><th>Serial</th><th>Responsable</th><th>Estado</th><th>Valor</th><th>Ingreso</th></tr></thead><tbody>${rows}</tbody></table>`;

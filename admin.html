@@ -29,17 +29,18 @@
       </nav>
       <div class="sidebar__footer"><p>Panel de Administración</p></div>
     </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <div class="main-content">
       <div class="topbar">
         <div style="display:flex;align-items:center;gap:12px">
-          <button class="menu-toggle-dash" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="fas fa-bars"></i></button>
+          <button class="menu-toggle-dash" onclick="toggleAdminSidebar()"><i class="fas fa-bars"></i></button>
           <h1 class="topbar__title" id="adminPageTitle">Dashboard</h1>
         </div>
 
         <div class="topbar__right">
           <div class="topbar__user"><i class="fas fa-user-shield"></i> <strong id="adminName"></strong></div>
-          <button class="btn btn-outline btn-sm" onclick="AuthManager.logout()"><i class="fas fa-sign-out-alt"></i> Salir</button>
+          <button class="btn btn-outline btn-sm" onclick="AuthManager.logout()"><i class="fas fa-sign-out-alt"></i><span> Salir</span></button>
         </div>
       </div>
 

@@ -2,7 +2,7 @@
 :root{--bg-primary:#0a0a0f;--bg-secondary:rgba(18,18,26,0.75);--bg-card:rgba(18,18,26,0.5);--bg-glass:rgba(18,18,26,0.6);--text-primary:#f0f0f5;--text-secondary:#a0a0b8;--accent:#c41230;--accent-light:#e8143a;--accent-dark:#8b0d22;--accent-glow:rgba(196,18,48,0.3);--gray-700:rgba(42,42,62,0.6);--gray-600:rgba(58,58,82,0.6);--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--info:#3b82f6;--radius:16px;--radius-sm:8px;--shadow:0 8px 32px rgba(0,0,0,0.4);--transition:all 0.3s cubic-bezier(0.4,0,0.2,1);--sidebar-width:260px}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;font-size:16px}
-body{font-family:'Poppins',sans-serif;background:url('../DesignInspo/Imagen%20Principal.jpg') center/cover no-repeat fixed;color:var(--text-primary);line-height:1.6;overflow-x:hidden}
+body{font-family:'Poppins',sans-serif;background:url('../DesignInspo/Imagen%20Principal.jpg') center/cover no-repeat fixed;color:var(--text-primary);line-height:1.6;overflow-x:clip}
 body::before{content:'';position:fixed;inset:0;background:rgba(255,255,255,0.08);backdrop-filter:blur(12px);z-index:-1}
 h1,h2,h3,h4,h5,h6{font-family:'Outfit',sans-serif;font-weight:700;line-height:1.2}
 a{text-decoration:none;color:inherit;transition:var(--transition)}
@@ -324,7 +324,7 @@ input[type="color"]{width:50px;height:36px;border:none;border-radius:var(--radiu
   position: relative;
   min-height: 100vh;
   width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .login-page::before {
@@ -386,7 +386,7 @@ input[type="color"]{width:50px;height:36px;border:none;border-radius:var(--radiu
 .surticore-title {
   font-family: 'Outfit', sans-serif;
   font-weight: 900;
-  font-size: 3.8rem !important;
+  font-size: clamp(2rem, 5vw, 3.8rem) !important;
   letter-spacing: 1px;
   margin-bottom: 10px !important;
   line-height: 1;
@@ -796,4 +796,257 @@ input[type="color"]{width:50px;height:36px;border:none;border-radius:var(--radiu
   #mouse-glow {
     display: none;
   }
+}
+
+/* ============================================ */
+/* === RESPONSIVE DESIGN & MOBILE FIXES ===     */
+/* ============================================ */
+
+/* --- 1. GLOBAL OVERFLOW FIXES --- */
+.main-content,
+.page-content,
+.toolbar,
+.toolbar__filters,
+.toolbar__actions,
+.kpi-grid,
+.exec-kpi-grid,
+.dash-row { min-width: 0; }
+
+/* --- 2. SAFARI / iOS FIXES --- */
+body::before { -webkit-backdrop-filter: blur(12px); }
+.login-card { -webkit-backdrop-filter: blur(10px); }
+.sidebar { -webkit-backdrop-filter: blur(16px); }
+.topbar { -webkit-backdrop-filter: blur(12px); }
+.kpi-card { -webkit-backdrop-filter: blur(16px); }
+.toolbar { -webkit-backdrop-filter: blur(24px); }
+.table-container { -webkit-backdrop-filter: blur(16px); }
+.modal__overlay { -webkit-backdrop-filter: blur(4px); }
+.modal__content { -webkit-backdrop-filter: blur(24px); }
+.equipo-card { -webkit-backdrop-filter: blur(16px); }
+.admin-card { -webkit-backdrop-filter: blur(16px); }
+.exec-kpi { -webkit-backdrop-filter: blur(16px); }
+.chart-card { -webkit-backdrop-filter: blur(16px); }
+
+.table-wrapper,
+.modal__body,
+.sidebar__nav { -webkit-overflow-scrolling: touch; }
+
+.app-layout { min-height: 100dvh; }
+.sidebar { height: 100dvh; }
+
+/* --- 3. SIDEBAR OVERLAY --- */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.sidebar-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+/* --- 4. BREAKPOINT 768px — MOBILE --- */
+@media(max-width: 768px) {
+
+  /* Modals → Bottom Sheet */
+  .modal { align-items: flex-end; }
+  .modal__content {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 90vh; /* fallback */
+    max-height: 90dvh;
+    border-radius: 16px 16px 0 0;
+    margin: 0;
+  }
+  .modal__content.large {
+    max-width: 100% !important;
+    max-height: 95vh;
+    max-height: 95dvh;
+  }
+  .modal__header {
+    padding: 16px 20px;
+    position: relative;
+  }
+  .modal__header::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 4px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
+  }
+  .modal__body { padding: 16px 20px; }
+  .modal__footer {
+    padding: 12px 20px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .modal__footer .btn {
+    flex: 1;
+    min-width: 120px;
+    justify-content: center;
+  }
+
+  /* Tabs horizontal scroll */
+  .tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab-btn { white-space: nowrap; flex-shrink: 0; }
+
+  /* Tables → Card View */
+  .table-wrapper table,
+  .table-wrapper thead,
+  .table-wrapper tbody,
+  .table-wrapper th,
+  .table-wrapper td,
+  .table-wrapper tr { display: block; }
+
+  .table-wrapper thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .table-wrapper tr {
+    margin-bottom: 12px;
+    background: var(--bg-card);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+
+  .table-wrapper td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-top: none;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    white-space: normal;
+    text-align: right;
+  }
+
+  .table-wrapper td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+    margin-right: 16px;
+    text-align: left;
+  }
+
+  .table-wrapper td:last-child {
+    border-bottom: none;
+  }
+
+  .table-wrapper .td-actions {
+    justify-content: flex-end;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    border-bottom: none;
+  }
+
+  .table-wrapper .td-actions::before {
+    display: none;
+  }
+
+  .table-wrapper .td-type {
+    justify-content: flex-end;
+  }
+
+  /* Touch-friendly buttons */
+  .btn-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 1rem;
+  }
+
+  /* Forms touch-friendly */
+  input, select, textarea {
+    font-size: 16px !important;
+    min-height: 48px;
+  }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 14px 16px;
+  }
+
+  /* Topbar mobile */
+  .topbar__user {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .topbar .btn-sm .fa-sign-out-alt + span,
+  .topbar .btn-sm span { display: none; }
+  .topbar { padding: 12px 16px; gap: 8px; }
+  .topbar__right { gap: 8px; }
+
+  /* Toolbar mobile */
+  .toolbar__search { min-width: unset; }
+  .toolbar__filters select,
+  .toolbar__filters input { min-width: unset; }
+
+  /* Login responsive */
+  .surticore-card { padding: 30px 20px 24px !important; }
+  .surticore-title { font-size: 2.2rem !important; }
+  .login-features .feature-item { flex: 0 0 100%; }
+
+  /* Equipo modal footer (price + buttons) */
+  #modalEquipo .modal__footer,
+  #modalAdminEquipo .modal__footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  #modalEquipo .modal__footer > div,
+  #modalAdminEquipo .modal__footer > div {
+    width: 100%;
+  }
+  #modalEquipo .modal__footer input[type='number'],
+  #modalAdminEquipo .modal__footer input[type='number'] {
+    width: 100% !important;
+  }
+
+  /* 6. Safe area insets */
+  .topbar {
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+  .page-content {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+
+/* --- 5. BREAKPOINT 480px — EXTRA SMALL --- */
+@media(max-width: 480px) {
+  .kpi-card { padding: 16px; }
+  .exec-kpi { padding: 16px; }
+  .exec-kpi__value { font-size: 1.8rem; }
+  .chart-card__body { min-height: 180px; padding: 10px; }
+  .page-content { padding: 12px; }
+  .topbar { padding: 10px 12px; }
+  .topbar__title { font-size: 1rem; }
+  .sidebar__footer { padding: 12px; }
+  .sidebar__footer img { max-width: 120px; }
 }

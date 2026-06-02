@@ -1,4 +1,17 @@
 // Admin Panel
+
+// Responsive sidebar toggle with overlay
+function toggleAdminSidebar(){
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  sidebar.classList.toggle('open');
+  if(overlay) overlay.classList.toggle('active');
+  document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const overlay = document.getElementById('sidebarOverlay');
+  if(overlay) overlay.addEventListener('click', toggleAdminSidebar);
+});
 let logoBase64='';
 
 document.addEventListener('DOMContentLoaded', async ()=>{
@@ -202,10 +215,10 @@ document.getElementById('usuariosTableBody').innerHTML=users.map(u=>{
 const empName=empMap.get(u.empresaId);
 const check=v=>v?'<i class="fas fa-check-circle" style="color:var(--success)"></i>':'<i class="fas fa-times-circle" style="color:var(--text-secondary);opacity:.3"></i>';
 return`<tr>
-<td><strong>${u.username}</strong></td><td>${u.nombre}</td><td>${empName||'—'}</td><td><span class="badge ${u.rol==='admin'?'badge-primary':'badge-info'}">${u.rol==='admin'?'Admin':'Cliente'}</span></td>
-<td>${check(u.permisos.canCreate)}</td><td>${check(u.permisos.canEdit)}</td><td>${check(u.permisos.canDelete)}</td><td>${check(u.permisos.canManageUbicaciones)}</td>
-<td>${u.activo?'<span class="badge badge-success">Activo</span>':'<span class="badge badge-danger">Inactivo</span>'}</td>
-<td class="td-actions">
+<td data-label="Usuario"><strong>${u.username}</strong></td><td data-label="Nombre">${u.nombre}</td><td data-label="Empresa">${empName||'—'}</td><td data-label="Rol"><span class="badge ${u.rol==='admin'?'badge-primary':'badge-info'}">${u.rol==='admin'?'Admin':'Cliente'}</span></td>
+<td data-label="Crear">${check(u.permisos.canCreate)}</td><td data-label="Editar">${check(u.permisos.canEdit)}</td><td data-label="Eliminar">${check(u.permisos.canDelete)}</td><td data-label="Sedes">${check(u.permisos.canManageUbicaciones)}</td>
+<td data-label="Estado">${u.activo?'<span class="badge badge-success">Activo</span>':'<span class="badge badge-danger">Inactivo</span>'}</td>
+<td class="td-actions" data-label="">
 <button class="btn-icon" onclick="openUsuarioModal('${u.id}')"><i class="fas fa-edit"></i></button>
 <button class="btn-icon btn-danger-icon" onclick="deleteUsuario('${u.id}')"><i class="fas fa-trash"></i></button>
 </td></tr>`;}).join('');
@@ -269,9 +282,9 @@ const eqCountMap = equipos.reduce((acc, eq) => { if(eq.empleadoId) acc[eq.emplea
 
 document.getElementById('adminPersonalBody').innerHTML=personal.map(p=>{
 const empName=empMap.get(p.empresaId);const eqCount=eqCountMap[p.id]||0;
-return`<tr><td>${p.nombre}</td><td>${p.apellido}</td><td>${empName||'—'}</td><td>${p.cargo||'—'}</td><td>${p.departamento||'—'}</td><td>${p.ubicacion||'—'}</td><td>${p.email||'—'}</td>
-<td><span class="badge badge-info">${eqCount}</span></td>
-<td class="td-actions"><button class="btn-icon" onclick="openAdminPersonalModal('${p.id}')"><i class="fas fa-edit"></i></button>
+return`<tr><td data-label="Nombre">${p.nombre}</td><td data-label="Apellido">${p.apellido}</td><td data-label="Empresa">${empName||'—'}</td><td data-label="Cargo">${p.cargo||'—'}</td><td data-label="Departamento">${p.departamento||'—'}</td><td data-label="Ubicación">${p.ubicacion||'—'}</td><td data-label="Email">${p.email||'—'}</td>
+<td data-label="Equipos"><span class="badge badge-info">${eqCount}</span></td>
+<td class="td-actions" data-label=""><button class="btn-icon" onclick="openAdminPersonalModal('${p.id}')"><i class="fas fa-edit"></i></button>
 <button class="btn-icon btn-danger-icon" onclick="deleteAdminPersonal('${p.id}')"><i class="fas fa-trash"></i></button></td></tr>`;}).join('');
 }
 
@@ -315,14 +328,14 @@ const personal = await DataManager.getAllPersonal();
 empresas.forEach(emp=>{
 const locs=emp.ubicaciones||[];
 if(locs.length===0){
-rows.push(`<tr><td>${emp.nombre}</td><td style="color:var(--text-secondary);font-style:italic">Sin sedes registradas</td><td>—</td><td>—</td><td>—</td></tr>`);
+rows.push(`<tr><td data-label="Empresa">${emp.nombre}</td><td data-label="Sede/Ubicación" style="color:var(--text-secondary);font-style:italic">Sin sedes registradas</td><td data-label="Equipos">—</td><td data-label="Personal">—</td><td data-label="" class="td-actions">—</td></tr>`);
 }else{
 locs.forEach(loc=>{
 const eqCount=equipos.filter(e=>e.empresaId===emp.id && e.ubicacion===loc).length;
 const perCount=personal.filter(p=>p.empresaId===emp.id && p.ubicacion===loc).length;
-rows.push(`<tr><td>${emp.nombre}</td><td><i class="fas fa-map-marker-alt" style="color:var(--accent-light);margin-right:6px"></i>${loc}</td>
-<td><span class="badge badge-info">${eqCount}</span></td><td><span class="badge badge-info">${perCount}</span></td>
-<td class="td-actions"><button class="btn-icon btn-danger-icon" onclick="deleteSedeFromTable('${emp.id}','${loc.replace(/'/g,"\\'")}')"><i class="fas fa-trash"></i></button></td></tr>`);
+rows.push(`<tr><td data-label="Empresa">${emp.nombre}</td><td data-label="Sede/Ubicación"><i class="fas fa-map-marker-alt" style="color:var(--accent-light);margin-right:6px"></i>${loc}</td>
+<td data-label="Equipos"><span class="badge badge-info">${eqCount}</span></td><td data-label="Personal"><span class="badge badge-info">${perCount}</span></td>
+<td class="td-actions" data-label=""><button class="btn-icon btn-danger-icon" onclick="deleteSedeFromTable('${emp.id}','${loc.replace(/'/g,"\\'")}')" ><i class="fas fa-trash"></i></button></td></tr>`);
 });
 }
 });
@@ -352,11 +365,11 @@ const perMap = new Map(personal.map(p => [p.id, p]));
 
 document.getElementById('adminInventarioBody').innerHTML=equipos.map(e=>{
 const empName=empMap.get(e.empresaId);const per=e.empleadoId ? perMap.get(e.empleadoId) : null;
-return`<tr><td>${empName||'—'}</td><td><div class="td-type"><i class="fas ${getEquipmentIcon(e.tipo)}"></i>${e.tipo}</div></td>
-<td>${e.marca} ${e.modelo}</td><td>${e.serial}</td>
-<td>${per?`${per.nombre} ${per.apellido}`:'Sin asignar'}</td><td>${e.ubicacion||'—'}</td>
-<td>${getStatusBadge(e.estado)}</td><td>${e.direccionIP||'—'}</td>
-<td class="td-actions"><button class="btn-icon" onclick="openAdminEquipoModal('${e.id}')"><i class="fas fa-edit"></i></button>
+return`<tr><td data-label="Empresa">${empName||'—'}</td><td data-label="Tipo"><div class="td-type"><i class="fas ${getEquipmentIcon(e.tipo)}"></i>${e.tipo}</div></td>
+<td data-label="Equipo">${e.marca} ${e.modelo}</td><td data-label="Serial">${e.serial}</td>
+<td data-label="Asignado a">${per?`${per.nombre} ${per.apellido}`:'Sin asignar'}</td><td data-label="Ubicación">${e.ubicacion||'—'}</td>
+<td data-label="Estado">${getStatusBadge(e.estado)}</td><td data-label="IP">${e.direccionIP||'—'}</td>
+<td class="td-actions" data-label=""><button class="btn-icon" onclick="openAdminEquipoModal('${e.id}')"><i class="fas fa-edit"></i></button>
 <button class="btn-icon btn-danger-icon" onclick="deleteAdminEquipo('${e.id}')"><i class="fas fa-trash"></i></button></td></tr>`;}).join('');
 }
 
