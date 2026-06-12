@@ -487,17 +487,18 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // === EXPORTS ===
-async function exportCSV(){
-const emp=await DataManager.getEmpresa(empresaId);const pm={};
-const personal=await DataManager.getPersonal(empresaId);
-personal.forEach(p=>pm[p.id]=p);
-ReportsManager.exportExcel(filteredEquipos,emp?emp.nombre:'Empresa',pm);
-}
-async function exportPDF(){
-const emp=await DataManager.getEmpresa(empresaId);const pm={};
-const personal=await DataManager.getPersonal(empresaId);
-personal.forEach(p=>pm[p.id]=p);
-ReportsManager.exportPDF(filteredEquipos,emp?emp.nombre:'Empresa',pm,emp?emp.logo:null);
+function openExportConfig(format) {
+  ReportsManager.openExportModal(format, 'modalExport', async (fmt, options) => {
+    const emp = await DataManager.getEmpresa(empresaId);
+    const pm = {};
+    const personal = await DataManager.getPersonal(empresaId);
+    personal.forEach(p => pm[p.id] = p);
+    if (fmt === 'csv') {
+      ReportsManager.exportExcel(filteredEquipos, emp ? emp.nombre : 'Empresa', pm, options);
+    } else {
+      ReportsManager.exportPDF(filteredEquipos, emp ? emp.nombre : 'Empresa', pm, emp ? emp.logo : null, options);
+    }
+  });
 }
 
 // ============================================

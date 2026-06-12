@@ -373,13 +373,15 @@ return`<tr><td data-label="Empresa">${empName||'—'}</td><td data-label="Tipo">
 <button class="btn-icon btn-danger-icon" onclick="deleteAdminEquipo('${e.id}')"><i class="fas fa-trash"></i></button></td></tr>`;}).join('');
 }
 
-async function adminExportCSV(){
-const empFilter=document.getElementById('adminInvEmpresa').value;
-let equipos=empFilter?await DataManager.getEquipos(empFilter):await DataManager.getAllEquipos();
-const pm={};
-const personal = await DataManager.getAllPersonal();
-personal.forEach(p=>pm[p.id]=p);
-ReportsManager.exportExcel(equipos,'Global',pm);
+function openAdminExportConfig() {
+  ReportsManager.openExportModal('csv', 'modalExportAdmin', async (fmt, options) => {
+    const empFilter = document.getElementById('adminInvEmpresa').value;
+    let equipos = empFilter ? await DataManager.getEquipos(empFilter) : await DataManager.getAllEquipos();
+    const pm = {};
+    const personal = await DataManager.getAllPersonal();
+    personal.forEach(p => pm[p.id] = p);
+    ReportsManager.exportExcel(equipos, 'Global', pm, options);
+  });
 }
 
 // === NAVIGATION ===

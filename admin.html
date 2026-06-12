@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin – SURTICORE</title>
   <link rel="icon" type="image/png" href="DesignInspo/favicon-dark.png">
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=2">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -110,7 +110,7 @@
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
               <select id="adminInvEmpresa" onchange="renderAdminInventario()" class="form-control" style="width:auto"><option value="">Todas las empresas</option></select>
               <select id="adminInvTipo" onchange="renderAdminInventario()" class="form-control" style="width:auto"><option value="">Todos los tipos</option><option value="pcescritorio">PC Escritorio</option><option value="notebook">Notebooks</option><option value="impresora">Impresoras</option><option value="celular">Celulares</option><option value="tablet">Tablets</option><option value="servidor">Servidores</option></select>
-              <button class="btn btn-secondary btn-sm" onclick="adminExportCSV()"><i class="fas fa-file-csv"></i> CSV</button>
+              <button class="btn btn-secondary btn-sm" onclick="openAdminExportConfig()"><i class="fas fa-file-csv"></i> CSV</button>
               <button class="btn btn-primary btn-sm" onclick="openAdminEquipoModal()"><i class="fas fa-plus"></i> Agregar Equipo</button>
             </div>
           </div>
@@ -387,7 +387,74 @@
   <script src="js/utils.js"></script>
   <script src="js/data.js"></script>
   <script src="js/auth.js?v=2"></script>
-  <script src="js/reports.js"></script>
+  <!-- Export Configuration Modal (Admin) -->
+  <div id="modalExportAdmin" class="modal">
+    <div class="modal__overlay" onclick="closeModal('modalExportAdmin')"></div>
+    <div class="modal__content">
+      <div class="modal__header">
+        <h2><i class="fas fa-cog" style="margin-right:8px;color:var(--accent)"></i>Configurar Exportación <span class="export-format-badge"><i class="fas fa-file-csv"></i> CSV</span></h2>
+        <button class="modal__close" onclick="closeModal('modalExportAdmin')">&times;</button>
+      </div>
+      <div class="modal__body">
+        <!-- Column Selection -->
+        <div class="export-config-section">
+          <div class="export-config-section__title"><i class="fas fa-columns"></i> Columnas a exportar</div>
+          <div class="export-select-all">
+            <button onclick="ReportsManager.toggleSelectAll('modalExportAdmin')">Deseleccionar todo</button>
+          </div>
+          <div class="export-columns-grid">
+            <label class="export-col-check checked"><input type="checkbox" value="tipo" checked> Tipo</label>
+            <label class="export-col-check checked"><input type="checkbox" value="marca" checked> Marca</label>
+            <label class="export-col-check checked"><input type="checkbox" value="modelo" checked> Modelo</label>
+            <label class="export-col-check checked"><input type="checkbox" value="serial" checked> Serial</label>
+            <label class="export-col-check checked"><input type="checkbox" value="estado" checked> Estado</label>
+            <label class="export-col-check checked"><input type="checkbox" value="asignado" checked> Asignado a</label>
+            <label class="export-col-check checked"><input type="checkbox" value="cargo" checked> Cargo</label>
+            <label class="export-col-check checked"><input type="checkbox" value="ubicacion" checked> Ubicación</label>
+            <label class="export-col-check checked"><input type="checkbox" value="ip" checked> IP</label>
+            <label class="export-col-check checked"><input type="checkbox" value="so" checked> Sistema Operativo</label>
+            <label class="export-col-check checked"><input type="checkbox" value="ram" checked> RAM</label>
+            <label class="export-col-check checked"><input type="checkbox" value="procesador" checked> Procesador</label>
+            <label class="export-col-check checked"><input type="checkbox" value="disco" checked> Disco</label>
+            <label class="export-col-check checked"><input type="checkbox" value="fechaIngreso" checked> Fecha Ingreso</label>
+            <label class="export-col-check checked"><input type="checkbox" value="fechaCompra" checked> Fecha Compra</label>
+            <label class="export-col-check checked"><input type="checkbox" value="garantia" checked> Garantía Hasta</label>
+          </div>
+        </div>
+
+        <!-- Price & Total Options -->
+        <div class="export-config-section">
+          <div class="export-config-section__title"><i class="fas fa-dollar-sign"></i> Opciones de valor</div>
+          <div class="export-toggle-row">
+            <div class="export-toggle-info">
+              <span class="toggle-label">Incluir columna de precio</span>
+              <span class="toggle-desc">Agrega una columna con el precio de cada equipo</span>
+            </div>
+            <label class="export-toggle-switch">
+              <input type="checkbox" class="export-toggle-price">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="export-toggle-row">
+            <div class="export-toggle-info">
+              <span class="toggle-label">Mostrar valor total del inventario</span>
+              <span class="toggle-desc">Agrega una fila final con la sumatoria total del inventario</span>
+            </div>
+            <label class="export-toggle-switch">
+              <input type="checkbox" class="export-toggle-total">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn-secondary" onclick="closeModal('modalExportAdmin')">Cancelar</button>
+        <button class="btn btn-primary" onclick="ReportsManager.executeExportFromModal('modalExportAdmin')"><i class="fas fa-download"></i> Exportar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/reports.js?v=2"></script>
   <script src="js/admin.js?v=2"></script>
   <!-- Mouse Glow Effect -->
   <div id="mouse-glow" class="glow-subtle"></div>
