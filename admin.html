@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin – SURTICORE</title>
+  <title>Admin â€“ SURTICORE</title>
   <link rel="icon" type="image/png" href="DesignInspo/favicon-dark.png">
   <link rel="stylesheet" href="css/styles.css?v=2">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -23,11 +23,8 @@
         <a href="#" class="sidebar__link active" onclick="switchAdminSection('dashboard',this)"><i class="fas fa-chart-pie"></i> Dashboard</a>
         <a href="#" class="sidebar__link" onclick="switchAdminSection('empresas',this)"><i class="fas fa-building"></i> Empresas</a>
         <a href="#" class="sidebar__link" onclick="switchAdminSection('usuarios',this)"><i class="fas fa-user-shield"></i> Usuarios</a>
-        <a href="#" class="sidebar__link" onclick="switchAdminSection('sedes',this)"><i class="fas fa-map-marker-alt"></i> Sedes</a>
-        <a href="#" class="sidebar__link" onclick="switchAdminSection('personal',this)"><i class="fas fa-users"></i> Personal</a>
-        <a href="#" class="sidebar__link" onclick="switchAdminSection('inventario',this)"><i class="fas fa-laptop"></i> Inventario Global</a>
       </nav>
-      <div class="sidebar__footer"><p>Panel de Administración</p></div>
+      <div class="sidebar__footer"><p>Panel de AdministraciÃ³n</p></div>
     </aside>
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
@@ -54,7 +51,7 @@
         <!-- EMPRESAS -->
         <div id="sec-empresas" style="display:none">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-            <h2 style="font-size:1.1rem">Gestión de Empresas</h2>
+            <h2 style="font-size:1.1rem">GestiÃ³n de Empresas</h2>
             <button class="btn btn-primary btn-sm" onclick="openEmpresaModal()"><i class="fas fa-plus"></i> Nueva Empresa</button>
           </div>
           <div class="admin-card" id="empresasList"></div>
@@ -62,7 +59,7 @@
 
         <div id="sec-usuarios" style="display:none">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
-            <h2 style="font-size:1.1rem">Gestión de Usuarios</h2>
+            <h2 style="font-size:1.1rem">GestiÃ³n de Usuarios</h2>
             <div style="display:flex;gap:8px;align-items:center">
               <select id="adminUsrEmpresa" onchange="renderUsuarios()" class="form-control" style="width:auto"><option value="">Todas las empresas</option></select>
               <button class="btn btn-primary btn-sm" onclick="openUsuarioModal()"><i class="fas fa-plus"></i> Nuevo Usuario</button>
@@ -74,51 +71,7 @@
           </div></div>
         </div>
 
-        <!-- PERSONAL -->
-        <div id="sec-personal" style="display:none">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
-            <h2 style="font-size:1.1rem">Personal por Empresa</h2>
-            <div style="display:flex;gap:8px;align-items:center">
-              <select id="adminPerEmpresa" onchange="renderAdminPersonal()" class="form-control" style="width:auto"><option value="">Todas las empresas</option></select>
-              <button class="btn btn-primary btn-sm" onclick="openAdminPersonalModal()"><i class="fas fa-plus"></i> Agregar</button>
-            </div>
-          </div>
-          <div class="table-container"><div class="table-wrapper">
-            <table><thead><tr><th>Nombre</th><th>Apellido</th><th>Empresa</th><th>Cargo</th><th>Departamento</th><th>Ubicación</th><th>Email</th><th>Equipos</th><th>Acciones</th></tr></thead>
-            <tbody id="adminPersonalBody"></tbody></table>
-          </div></div>
-        </div>
 
-        <!-- SEDES -->
-        <div id="sec-sedes" style="display:none">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
-            <h2 style="font-size:1.1rem">Gestión de Sedes / Ubicaciones</h2>
-            <div style="display:flex;gap:8px;align-items:center">
-              <select id="adminSedesEmpresa" onchange="renderAdminSedes()" class="form-control" style="width:auto"><option value="">Todas las empresas</option></select>
-            </div>
-          </div>
-          <div class="table-container"><div class="table-wrapper">
-            <table><thead><tr><th>Empresa</th><th>Sede / Ubicación</th><th>Equipos</th><th>Personal</th><th>Acciones</th></tr></thead>
-            <tbody id="adminSedesBody"></tbody></table>
-          </div></div>
-        </div>
-
-        <!-- INVENTARIO GLOBAL -->
-        <div id="sec-inventario" style="display:none">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
-            <h2 style="font-size:1.1rem">Inventario Global</h2>
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-              <select id="adminInvEmpresa" onchange="renderAdminInventario()" class="form-control" style="width:auto"><option value="">Todas las empresas</option></select>
-              <select id="adminInvTipo" onchange="renderAdminInventario()" class="form-control" style="width:auto"><option value="">Todos los tipos</option><option value="pcescritorio">PC Escritorio</option><option value="notebook">Notebooks</option><option value="impresora">Impresoras</option><option value="celular">Celulares</option><option value="tablet">Tablets</option><option value="servidor">Servidores</option></select>
-              <button class="btn btn-secondary btn-sm" onclick="openAdminExportConfig()"><i class="fas fa-file-csv"></i> CSV</button>
-              <button class="btn btn-primary btn-sm" onclick="openAdminEquipoModal()"><i class="fas fa-plus"></i> Agregar Equipo</button>
-            </div>
-          </div>
-          <div class="table-container"><div class="table-wrapper">
-            <table><thead><tr><th>Empresa</th><th>Tipo</th><th>Equipo</th><th>Serial</th><th>Asignado a</th><th>Ubicación</th><th>Estado</th><th>IP</th><th>Acciones</th></tr></thead>
-            <tbody id="adminInventarioBody"></tbody></table>
-          </div></div>
-        </div>
       </div>
     </div>
   </div>
@@ -140,18 +93,18 @@
             <div class="form-group"><label>Email</label><input type="email" id="empEmail" placeholder="email@empresa.cl"></div>
           </div>
           <div class="form-row" style="margin-bottom:14px">
-            <div class="form-group"><label>Teléfono</label><input id="empTelefono" placeholder="+56 9 XXXX XXXX"></div>
-            <div class="form-group"><label>Dirección</label><input id="empDireccion" placeholder="Dirección"></div>
+            <div class="form-group"><label>TelÃ©fono</label><input id="empTelefono" placeholder="+56 9 XXXX XXXX"></div>
+            <div class="form-group"><label>DirecciÃ³n</label><input id="empDireccion" placeholder="DirecciÃ³n"></div>
           </div>
           <div class="form-row" style="margin-bottom:14px">
             <div class="form-group"><label>Etiqueta Ubicaciones</label><input id="empEtiquetaUbicacion" placeholder="Ej: Sedes, Obras, Plantas"></div>
             <div class="form-group"></div>
           </div>
           <div class="form-group" style="margin-bottom:14px">
-            <label>Gestión de Ubicaciones</label>
+            <label>GestiÃ³n de Ubicaciones</label>
             <div style="display:flex;gap:8px;margin-bottom:8px">
               <input id="empNuevaUbicacion" placeholder="Nombre de la nueva sede" style="flex:1">
-              <button type="button" class="btn btn-outline" onclick="adminAddUbicacion()">Añadir</button>
+              <button type="button" class="btn btn-outline" onclick="adminAddUbicacion()">AÃ±adir</button>
             </div>
             <div id="empUbicacionesList" class="detail-list" style="max-height:150px;overflow-y:auto;background:var(--bg-secondary);border-radius:8px;padding:8px;"></div>
           </div>
@@ -187,7 +140,7 @@
           <input type="hidden" id="usrId">
           <div class="form-row" style="margin-bottom:14px">
             <div class="form-group"><label>Username *</label><input id="usrUsername" required placeholder="nombre.usuario"></div>
-            <div class="form-group"><label>Contraseña *</label><input type="text" id="usrPassword" required placeholder="Contraseña"></div>
+            <div class="form-group"><label>ContraseÃ±a *</label><input type="text" id="usrPassword" required placeholder="ContraseÃ±a"></div>
           </div>
           <div class="form-row" style="margin-bottom:14px">
             <div class="form-group"><label>Nombre completo *</label><input id="usrNombre" required placeholder="Nombre del usuario"></div>
@@ -216,246 +169,14 @@
     </div>
   </div>
 
-  <!-- MODAL: Personal Admin -->
-  <div class="modal" id="modalAdminPersonal">
-    <div class="modal__overlay" onclick="closeModal('modalAdminPersonal')"></div>
-    <div class="modal__content">
-      <div class="modal__header"><h2 id="adminPersonalTitle">Agregar Personal</h2><button class="modal__close" onclick="closeModal('modalAdminPersonal')">&times;</button></div>
-      <div class="modal__body">
-        <form id="adminPersonalForm" onsubmit="saveAdminPersonal(event)">
-          <input type="hidden" id="aperId">
-          <div class="form-group" style="margin-bottom:14px"><label>Empresa *</label><select id="aperEmpresa" required onchange="loadAperUbicaciones()"><option value="">Seleccionar</option></select></div>
-          <div class="form-row" style="margin-bottom:14px">
-            <div class="form-group"><label>Nombre *</label><input id="aperNombre" required></div>
-            <div class="form-group"><label>Apellido *</label><input id="aperApellido" required></div>
-          </div>
-          <div class="form-row" style="margin-bottom:14px">
-            <div class="form-group"><label>Cargo</label><input id="aperCargo"></div>
-            <div class="form-group"><label>Departamento</label><input id="aperDepto"></div>
-          </div>
-          <div class="form-row" style="margin-bottom:14px">
-            <div class="form-group"><label>Email</label><input type="email" id="aperEmail"></div>
-            <div class="form-group"><label>Teléfono</label><input id="aperTelefono"></div>
-          </div>
-          <div class="form-group" style="margin-bottom:14px"><label>Ubicación</label><select id="aperUbicacion"><option value="">Seleccione una empresa primero</option></select></div>
-        </form>
-      </div>
-      <div class="modal__footer">
-        <button class="btn btn-secondary" onclick="closeModal('modalAdminPersonal')">Cancelar</button>
-        <button class="btn btn-primary" onclick="document.getElementById('adminPersonalForm').requestSubmit()"><i class="fas fa-save"></i> Guardar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: Equipo Admin -->
-  <div class="modal" id="modalAdminEquipo">
-    <div class="modal__overlay" onclick="closeModal('modalAdminEquipo')"></div>
-    <div class="modal__content large">
-      <div class="modal__header">
-        <h2 id="adminEquipoModalTitle">Agregar Equipo</h2>
-        <button class="modal__close" onclick="closeModal('modalAdminEquipo')">&times;</button>
-      </div>
-      <div class="modal__body">
-        <form id="adminEquipoForm" onsubmit="saveAdminEquipo(event)">
-          <input type="hidden" id="aeqId">
-          <div class="tabs">
-            <button type="button" class="tab-btn active" onclick="switchAdminTab(this,'aeq-general')">General</button>
-            <button type="button" class="tab-btn" onclick="switchAdminTab(this,'aeq-hardware')">Hardware</button>
-            <button type="button" class="tab-btn" onclick="switchAdminTab(this,'aeq-software')" id="aeqTabSoftwareBtn">Software y Red</button>
-            <button type="button" class="tab-btn" onclick="switchAdminTab(this,'aeq-perifericos')" id="aeqTabPerifericosBtn" style="display:none">Periféricos</button>
-            <button type="button" class="tab-btn" onclick="switchAdminTab(this,'aeq-notas')">Notas</button>
-          </div>
-
-          <div id="aeq-general" class="tab-content active">
-            <div class="form-group" style="margin-bottom:14px"><label>Empresa *</label><select id="aeqEmpresa" required onchange="loadAdminEquipoSelects()"><option value="">Seleccionar</option></select></div>
-            <div class="form-row" style="margin-bottom:14px">
-              <div class="form-group"><label>Tipo *</label>
-                <select id="aeqTipo" required onchange="toggleAdminTypeFields()"><option value="">Seleccionar</option><option value="pcescritorio">PC Escritorio</option><option value="notebook">Notebook</option><option value="impresora">Impresora</option><option value="celular">Celular</option><option value="tablet">Tablet</option><option value="servidor">Servidor</option></select>
-              </div>
-              <div class="form-group"><label>Estado *</label>
-                <select id="aeqEstado" required><option value="activo">Activo</option><option value="mantenimiento">Mantenimiento</option><option value="baja">Dado de baja</option></select>
-              </div>
-            </div>
-            <div class="form-row" style="margin-bottom:14px">
-              <div class="form-group"><label>Marca *</label><input id="aeqMarca" required placeholder="Ej: Dell, HP, Lenovo"></div>
-              <div class="form-group"><label>Modelo *</label><input id="aeqModelo" required placeholder="Ej: Latitude 5540"></div>
-            </div>
-            <div class="form-row" style="margin-bottom:14px">
-              <div class="form-group"><label>Serial *</label><input id="aeqSerial" required placeholder="Número de serie"></div>
-              <div class="form-group"><label>Asignado a</label>
-                <select id="aeqEmpleado"><option value="">Sin asignar</option></select>
-              </div>
-            </div>
-            <div class="form-group" style="margin-bottom:14px"><label>Ubicación</label><select id="aeqUbicacion"><option value="">Sin asignar</option></select></div>
-            <div class="form-row">
-              <div class="form-group"><label>Fecha de Compra</label><input type="date" id="aeqFechaCompra"></div>
-              <div class="form-group"><label>Garantía Hasta</label><input type="date" id="aeqGarantia"></div>
-            </div>
-          </div>
-
-          <div id="aeq-hardware" class="tab-content">
-            <div id="aeqPcFields" style="display:none">
-              <div class="form-row" style="margin-bottom:14px">
-                <div class="form-group"><label>Procesador</label><input id="aeqProcesador" placeholder="Ej: Intel Core i7-1365U"></div>
-                <div class="form-group"><label>RAM</label><input id="aeqRam" placeholder="Ej: 16 GB DDR5"></div>
-              </div>
-              <div class="form-row" style="margin-bottom:14px">
-                <div class="form-group"><label>Disco</label><input id="aeqDisco" placeholder="Ej: 512 GB NVMe SSD"></div>
-                <div class="form-group"><label>Tarjeta de Video</label><input id="aeqTarjetaVideo" placeholder="Ej: NVIDIA RTX 4060"></div>
-              </div>
-            </div>
-            <div id="aeqPrinterFields" style="display:none">
-              <div class="form-row">
-                <div class="form-group"><label>Tipo de Impresión</label><input id="aeqTipoImpresion" placeholder="Ej: Láser Color"></div>
-                <div class="form-group"><label>Conectividad</label><input id="aeqConectividad" placeholder="Ej: WiFi / USB / Ethernet"></div>
-              </div>
-              <div class="form-group"><label>Consumibles</label><input id="aeqConsumibles" placeholder="Ej: Toner CE285A, Tinta 664"></div>
-            </div>
-            <div id="aeqPhoneFields" style="display:none">
-              <div class="form-row">
-                <div class="form-group"><label>IMEI</label><input id="aeqImei" placeholder="IMEI del dispositivo"></div>
-                <div class="form-group"><label>Línea Telefónica</label><input id="aeqLinea" placeholder="+56 9 XXXX XXXX"></div>
-              </div>
-            </div>
-            <div id="aeqServerFields" style="display:none">
-              <div class="form-row">
-                <div class="form-group"><label>Tipo Servidor</label><input id="aeqTipoServidor" placeholder="Ej: Rack 2U"></div>
-                <div class="form-group"><label>Almacenamiento Total</label><input id="aeqAlmTotal" placeholder="Ej: 4 TB RAID 5"></div>
-              </div>
-            </div>
-          </div>
-
-          <div id="aeq-software" class="tab-content">
-            <div class="form-row" style="margin-bottom:14px">
-              <div class="form-group"><label>Sistema Operativo</label><input id="aeqOS" placeholder="Ej: Windows 11 Pro"></div>
-              <div class="form-group"><label>Versión S.O.</label><input id="aeqOSVersion" placeholder="Ej: 23H2"></div>
-            </div>
-            <div class="form-group" style="margin-bottom:14px"><label>Dirección IP</label><input id="aeqIP" placeholder="Ej: 192.168.1.100"></div>
-            <div class="detail-section">
-              <h4><i class="fas fa-box"></i> Programas Instalados</h4>
-              <div id="aeqListProgramas"></div>
-              <button type="button" class="add-list-btn" onclick="addDynamicItem('aeqListProgramas')"><i class="fas fa-plus"></i> Agregar programa</button>
-            </div>
-            <div class="detail-section">
-              <h4><i class="fas fa-folder"></i> Unidades de Red</h4>
-              <div id="aeqListUnidades"></div>
-              <button type="button" class="add-list-btn" onclick="addDynamicItem('aeqListUnidades')"><i class="fas fa-plus"></i> Agregar unidad</button>
-            </div>
-            <div class="detail-section">
-              <h4><i class="fas fa-print"></i> Impresoras Instaladas</h4>
-              <div id="aeqListImpresoras"></div>
-              <button type="button" class="add-list-btn" onclick="addDynamicItem('aeqListImpresoras')"><i class="fas fa-plus"></i> Agregar impresora</button>
-            </div>
-          </div>
-
-          <div id="aeq-perifericos" class="tab-content">
-            <div class="form-row" style="margin-bottom:14px">
-              <div class="form-group"><label>Teclado</label><input id="aeqPerTeclado" placeholder="Ej: Logitech K120"></div>
-              <div class="form-group"><label>Mouse</label><input id="aeqPerMouse" placeholder="Ej: Logitech M185"></div>
-            </div>
-            <div class="form-row" style="margin-bottom:14px">
-              <div class="form-group"><label>Cámara WEB</label><input id="aeqPerCamara" placeholder="Ej: Logitech C920"></div>
-              <div class="form-group"><label>Audífonos</label><input id="aeqPerAudifonos" placeholder="Ej: Jabra Evolve 20"></div>
-            </div>
-            <div class="form-row" style="margin-bottom:14px">
-              <div class="form-group"><label>Parlantes</label><input id="aeqPerParlantes" placeholder="Ej: Genius SP-U115"></div>
-              <div class="form-group"><label>Monitor</label><input id="aeqPerMonitor" placeholder="Ej: Dell 24' P2419H"></div>
-            </div>
-            <div class="form-group" style="margin-bottom:14px"><label>Otros</label><input id="aeqPerOtros" placeholder="Ej: Hub USB, Soporte..."></div>
-          </div>
-
-          <div id="aeq-notas" class="tab-content">
-            <div class="form-group"><label>Notas / Observaciones</label><textarea id="aeqNotas" rows="6" placeholder="Notas adicionales sobre el equipo..."></textarea></div>
-          </div>
-        </form>
-      </div>
-      <div class="modal__footer" style="display: flex; justify-content: space-between; align-items: center;">
-        <div class="form-group" style="margin-bottom: 0; display: flex; align-items: center; gap: 10px;">
-          <label style="margin-bottom: 0; color: var(--text-secondary);">Precio Promedio</label>
-          <input id="aeqPrecio" type="number" step="0.01" placeholder="0.00" style="width: 120px; padding: 6px 12px;">
-        </div>
-        <div>
-          <button class="btn btn-secondary" onclick="closeModal('modalAdminEquipo')">Cancelar</button>
-          <button class="btn btn-primary" onclick="document.getElementById('adminEquipoForm').requestSubmit()"><i class="fas fa-save"></i> Guardar</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- Modals for Personal Admin and Equipo Admin removed â€” admin now uses dashboard.html per empresa -->
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabaseClient.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/data.js"></script>
   <script src="js/auth.js?v=2"></script>
-  <!-- Export Configuration Modal (Admin) -->
-  <div id="modalExportAdmin" class="modal">
-    <div class="modal__overlay" onclick="closeModal('modalExportAdmin')"></div>
-    <div class="modal__content">
-      <div class="modal__header">
-        <h2><i class="fas fa-cog" style="margin-right:8px;color:var(--accent)"></i>Configurar Exportación <span class="export-format-badge"><i class="fas fa-file-csv"></i> CSV</span></h2>
-        <button class="modal__close" onclick="closeModal('modalExportAdmin')">&times;</button>
-      </div>
-      <div class="modal__body">
-        <!-- Column Selection -->
-        <div class="export-config-section">
-          <div class="export-config-section__title"><i class="fas fa-columns"></i> Columnas a exportar</div>
-          <div class="export-select-all">
-            <button onclick="ReportsManager.toggleSelectAll('modalExportAdmin')">Deseleccionar todo</button>
-          </div>
-          <div class="export-columns-grid">
-            <label class="export-col-check checked"><input type="checkbox" value="tipo" checked> Tipo</label>
-            <label class="export-col-check checked"><input type="checkbox" value="marca" checked> Marca</label>
-            <label class="export-col-check checked"><input type="checkbox" value="modelo" checked> Modelo</label>
-            <label class="export-col-check checked"><input type="checkbox" value="serial" checked> Serial</label>
-            <label class="export-col-check checked"><input type="checkbox" value="estado" checked> Estado</label>
-            <label class="export-col-check checked"><input type="checkbox" value="asignado" checked> Asignado a</label>
-            <label class="export-col-check checked"><input type="checkbox" value="cargo" checked> Cargo</label>
-            <label class="export-col-check checked"><input type="checkbox" value="ubicacion" checked> Ubicación</label>
-            <label class="export-col-check checked"><input type="checkbox" value="ip" checked> IP</label>
-            <label class="export-col-check checked"><input type="checkbox" value="so" checked> Sistema Operativo</label>
-            <label class="export-col-check checked"><input type="checkbox" value="ram" checked> RAM</label>
-            <label class="export-col-check checked"><input type="checkbox" value="procesador" checked> Procesador</label>
-            <label class="export-col-check checked"><input type="checkbox" value="disco" checked> Disco</label>
-            <label class="export-col-check checked"><input type="checkbox" value="fechaIngreso" checked> Fecha Ingreso</label>
-            <label class="export-col-check checked"><input type="checkbox" value="fechaCompra" checked> Fecha Compra</label>
-            <label class="export-col-check checked"><input type="checkbox" value="garantia" checked> Garantía Hasta</label>
-          </div>
-        </div>
-
-        <!-- Price & Total Options -->
-        <div class="export-config-section">
-          <div class="export-config-section__title"><i class="fas fa-dollar-sign"></i> Opciones de valor</div>
-          <div class="export-toggle-row">
-            <div class="export-toggle-info">
-              <span class="toggle-label">Incluir columna de precio</span>
-              <span class="toggle-desc">Agrega una columna con el precio de cada equipo</span>
-            </div>
-            <label class="export-toggle-switch">
-              <input type="checkbox" class="export-toggle-price">
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="export-toggle-row">
-            <div class="export-toggle-info">
-              <span class="toggle-label">Mostrar valor total del inventario</span>
-              <span class="toggle-desc">Agrega una fila final con la sumatoria total del inventario</span>
-            </div>
-            <label class="export-toggle-switch">
-              <input type="checkbox" class="export-toggle-total">
-              <span class="slider"></span>
-            </label>
-          </div>
-        </div>
-      </div>
-      <div class="modal__footer">
-        <button class="btn btn-secondary" onclick="closeModal('modalExportAdmin')">Cancelar</button>
-        <button class="btn btn-primary" onclick="ReportsManager.executeExportFromModal('modalExportAdmin')"><i class="fas fa-download"></i> Exportar</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="js/reports.js?v=2"></script>
-  <script src="js/admin.js?v=2"></script>
+  <script src="js/admin.js?v=3"></script>
   <!-- Mouse Glow Effect -->
   <div id="mouse-glow" class="glow-subtle"></div>
 

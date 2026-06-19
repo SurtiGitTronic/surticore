@@ -1,12 +1,38 @@
 // Dashboard Init
 let currentView='table',currentSort={key:'fechaIngreso',dir:'desc'},currentPage=1,pageSize=10,filteredEquipos=[],empresaId=null,currentLocationFilter='';
 let chartInstances = {};
+let isAdminViewing = false;
 
 document.addEventListener('DOMContentLoaded', async ()=>{
 if(!AuthManager.requireAuth())return;
 const s=AuthManager.getSession();
-if(s.rol==='admin'){window.location.href='admin.html';return;}
-empresaId=s.empresaId;
+
+// Check if admin is visiting a specific empresa via URL param
+const urlParams = new URLSearchParams(window.location.search);
+const paramEmpresaId = urlParams.get('empresaId');
+
+if(s.rol==='admin'){
+  if(!paramEmpresaId){window.location.href='admin.html';return;}
+  // Admin is visiting a specific empresa's dashboard
+  isAdminViewing = true;
+  empresaId = paramEmpresaId;
+  // Show back-to-admin button
+  const backBtn = document.getElementById('btnBackToAdmin');
+  if(backBtn) backBtn.style.display = '';
+  // Grant full permissions for admin viewing
+  document.getElementById('btnAddEquipo').style.display='';
+  document.getElementById('btnAddPersonal').style.display='';
+  const btnManageLocs = document.getElementById('btnManageLocs');
+  if(btnManageLocs) btnManageLocs.style.display = 'block';
+} else {
+  empresaId=s.empresaId;
+  if(s.permisos && s.permisos.canManageUbicaciones) {
+    const btn = document.getElementById('btnManageLocs');
+    if(btn) btn.style.display = 'block';
+  }
+  if(AuthManager.canCreate()){document.getElementById('btnAddEquipo').style.display='';document.getElementById('btnAddPersonal').style.display='';}
+}
+
 document.getElementById('userName').textContent=s.nombre;
 const emp=await DataManager.getEmpresa(empresaId);
 if(emp){
@@ -16,18 +42,13 @@ if(emp){
   const sidebarUserName = document.getElementById('sidebarUserName');
   if(sidebarUserName) sidebarUserName.textContent = s.nombre;
   const sidebarUserCargo = document.getElementById('sidebarUserCargo');
-  if(sidebarUserCargo) sidebarUserCargo.textContent = s.cargo || 'Cliente';
+  if(sidebarUserCargo) sidebarUserCargo.textContent = isAdminViewing ? 'Administrador' : (s.cargo || 'Cliente');
   if(emp.logo){document.getElementById('sidebarLogo').src=emp.logo;document.getElementById('sidebarLogo').style.display='block';document.getElementById('printLogo').src=emp.logo;}
   if(emp.colorPrimario)applyCompanyTheme(emp.colorPrimario);
   const label = emp.etiquetaUbicacion || 'Sedes';
   document.getElementById('navUbicacionesTitle').textContent = label;
 }
 document.getElementById('printDate').textContent=new Date().toLocaleDateString('es-CL');
-if(s.permisos && s.permisos.canManageUbicaciones) {
-  const btn = document.getElementById('btnManageLocs');
-  if(btn) btn.style.display = 'block';
-}
-if(AuthManager.canCreate()){document.getElementById('btnAddEquipo').style.display='';document.getElementById('btnAddPersonal').style.display='';}
 await loadUbicacionesSelects();await loadFilters();await loadSidebarLocations();await renderKPIs();await applyFilters();await renderPersonal();
 await renderExecutiveDashboard();
 });

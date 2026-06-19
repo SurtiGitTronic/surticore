@@ -26,14 +26,11 @@ await renderAll();
 });
 
 async function renderAll(){
-  await loadEmpresaSelects(); // Call this first so filters work
+  await loadEmpresaSelects();
   await renderAdminKPIs();
   await renderDashEmpresas();
   await renderEmpresas();
   await renderUsuarios();
-  await renderAdminSedes();
-  await renderAdminPersonal();
-  await renderAdminInventario();
 }
 
 async function renderAdminKPIs(){
@@ -54,7 +51,7 @@ if(empresas.length===0){
 }
 const htmlPromises = empresas.map(async e=>{
 const eqs=await DataManager.getEquipos(e.id),pers=await DataManager.getPersonal(e.id);
-return`<div class="empresa-item">
+return`<div class="empresa-item" style="cursor:pointer" onclick="window.location.href='dashboard.html?empresaId=${e.id}'">
 <div class="empresa-item__info">
 <div class="empresa-item__logo">${e.logo?`<img src="${e.logo}">`:`<i class="fas fa-building"></i>`}</div>
 <div class="empresa-item__details"><h4>${e.nombre}</h4><p>${e.rut||'Sin RUT'} · ${e.contacto||''}</p></div>
@@ -77,6 +74,7 @@ return`<div class="empresa-item">
 <div class="empresa-item__details"><h4>${e.nombre}</h4><p>${e.rut||''} · ${e.email||''} · ${e.telefono||''}</p></div>
 </div>
 <div style="display:flex;gap:6px">
+<button class="btn btn-primary btn-sm" onclick="window.location.href='dashboard.html?empresaId=${e.id}'" title="Ver Dashboard"><i class="fas fa-chart-pie"></i> Ver Dashboard</button>
 <button class="btn-icon" onclick="openEmpresaModal('${e.id}')"><i class="fas fa-edit"></i></button>
 <button class="btn-icon btn-danger-icon" onclick="deleteEmpresa('${e.id}')"><i class="fas fa-trash"></i></button>
 </div></div>`;}).join(''):'<p style="padding:20px;color:var(--text-secondary);text-align:center">No hay empresas</p>';
@@ -86,8 +84,8 @@ async function loadEmpresaSelects(){
 const empresas=await DataManager.getEmpresas();
 const opts='<option value="">Seleccionar</option>'+empresas.map(e=>`<option value="${e.id}">${e.nombre}</option>`).join('');
 const optsAll='<option value="">Todas las empresas</option>'+empresas.map(e=>`<option value="${e.id}">${e.nombre}</option>`).join('');
-['usrEmpresa','aperEmpresa','aeqEmpresa'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
-['adminPerEmpresa','adminInvEmpresa','adminUsrEmpresa','adminSedesEmpresa'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=optsAll;});
+['usrEmpresa'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
+['adminUsrEmpresa'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=optsAll;});
 }
 
 // === EMPRESAS CRUD ===
@@ -139,7 +137,6 @@ async function adminAddUbicacion() {
   if(!val) return;
   
   if(!id) {
-    // Si la empresa es nueva, agregamos la ubicación a la vista y la guardamos al final
     const list = document.getElementById('empUbicacionesList');
     if (list.innerHTML.includes('Sin ubicaciones') || list.innerHTML.includes('Guarde la empresa primero')) list.innerHTML = '';
     list.innerHTML += `
@@ -173,7 +170,6 @@ reader.readAsDataURL(file);
 async function saveEmpresa(e){
 e.preventDefault();const id=document.getElementById('empId').value;
 
-// Capturar ubicaciones pendientes si las hay
 let pendingLocs = Array.from(document.querySelectorAll('.pending-loc')).map(el => el.dataset.val);
 const currentInput = document.getElementById('empNuevaUbicacion').value.trim();
 if(currentInput && !pendingLocs.includes(currentInput)) pendingLocs.push(currentInput);
@@ -267,250 +263,12 @@ closeModal('modalUsuario');await renderUsuarios();showNotification(id?'Usuario a
 
 async function deleteUsuario(id){if(!confirm('¿Eliminar este usuario?'))return;await DataManager.deleteUser(id);await renderUsuarios();showNotification('Usuario eliminado','success');}
 
-// === PERSONAL ADMIN ===
-async function renderAdminPersonal(){
-const empFilter=document.getElementById('adminPerEmpresa').value;
-let personal=empFilter?await DataManager.getPersonal(empFilter):await DataManager.getAllPersonal();
-if(personal.length===0){
-  document.getElementById('adminPersonalBody').innerHTML='<tr><td colspan="9"><div class="table-empty"><i class="fas fa-users"></i><p>No hay personal</p></div></td></tr>';
-  return;
-}
-const empresas = await DataManager.getEmpresas();
-const empMap = new Map(empresas.map(e => [e.id, e.nombre]));
-const equipos = await DataManager.getAllEquipos();
-const eqCountMap = equipos.reduce((acc, eq) => { if(eq.empleadoId) acc[eq.empleadoId] = (acc[eq.empleadoId] || 0) + 1; return acc; }, {});
-
-document.getElementById('adminPersonalBody').innerHTML=personal.map(p=>{
-const empName=empMap.get(p.empresaId);const eqCount=eqCountMap[p.id]||0;
-return`<tr><td data-label="Nombre">${p.nombre}</td><td data-label="Apellido">${p.apellido}</td><td data-label="Empresa">${empName||'—'}</td><td data-label="Cargo">${p.cargo||'—'}</td><td data-label="Departamento">${p.departamento||'—'}</td><td data-label="Ubicación">${p.ubicacion||'—'}</td><td data-label="Email">${p.email||'—'}</td>
-<td data-label="Equipos"><span class="badge badge-info">${eqCount}</span></td>
-<td class="td-actions" data-label=""><button class="btn-icon" onclick="openAdminPersonalModal('${p.id}')"><i class="fas fa-edit"></i></button>
-<button class="btn-icon btn-danger-icon" onclick="deleteAdminPersonal('${p.id}')"><i class="fas fa-trash"></i></button></td></tr>`;}).join('');
-}
-
-async function openAdminPersonalModal(id){
-document.getElementById('adminPersonalTitle').textContent=id?'Editar Personal':'Agregar Personal';
-document.getElementById('adminPersonalForm').reset();document.getElementById('aperId').value='';
-await loadEmpresaSelects();
-if(id){
-const p=await DataManager.getEmpleado(id);if(!p)return;
-document.getElementById('aperId').value=p.id;document.getElementById('aperEmpresa').value=p.empresaId;
-await loadAperUbicaciones();
-document.getElementById('aperNombre').value=p.nombre;document.getElementById('aperApellido').value=p.apellido;document.getElementById('aperCargo').value=p.cargo||'';document.getElementById('aperDepto').value=p.departamento||'';document.getElementById('aperEmail').value=p.email||'';document.getElementById('aperTelefono').value=p.telefono||'';setTimeout(()=>{document.getElementById('aperUbicacion').value=p.ubicacion||'';},0);}
-openModal('modalAdminPersonal');
-}
-
-async function loadAperUbicaciones() {
-  const empId = document.getElementById('aperEmpresa').value;
-  const sel = document.getElementById('aperUbicacion');
-  if(!empId) { sel.innerHTML = '<option value="">Seleccione una empresa primero</option>'; return; }
-  const locs = await DataManager.getUniqueLocations(empId);
-  sel.innerHTML = '<option value="">Sin asignar</option>' + locs.map(l => `<option value="${l}">${l}</option>`).join('');
-}
-
-async function saveAdminPersonal(e){
-e.preventDefault();const id=document.getElementById('aperId').value;
-const data={empresaId:document.getElementById('aperEmpresa').value,nombre:document.getElementById('aperNombre').value,apellido:document.getElementById('aperApellido').value,cargo:document.getElementById('aperCargo').value,departamento:document.getElementById('aperDepto').value,email:document.getElementById('aperEmail').value,telefono:document.getElementById('aperTelefono').value,ubicacion:document.getElementById('aperUbicacion').value,activo:true};
-if(id)await DataManager.updateEmpleado(id,data);else await DataManager.createEmpleado(data);
-closeModal('modalAdminPersonal');await renderAdminPersonal();await renderAdminKPIs();showNotification(id?'Personal actualizado':'Personal agregado','success');
-}
-
-async function deleteAdminPersonal(id){if(!confirm('¿Eliminar?'))return;await DataManager.deleteEmpleado(id);await renderAdminPersonal();await renderAdminKPIs();showNotification('Eliminado','success');}
-
-// === SEDES ADMIN ===
-async function renderAdminSedes(){
-const empFilter=document.getElementById('adminSedesEmpresa')?document.getElementById('adminSedesEmpresa').value:'';
-const empresas=empFilter?[await DataManager.getEmpresa(empFilter)].filter(Boolean):await DataManager.getEmpresas();
-let rows=[];
-const equipos = await DataManager.getAllEquipos();
-const personal = await DataManager.getAllPersonal();
-
-empresas.forEach(emp=>{
-const locs=emp.ubicaciones||[];
-if(locs.length===0){
-rows.push(`<tr><td data-label="Empresa">${emp.nombre}</td><td data-label="Sede/Ubicación" style="color:var(--text-secondary);font-style:italic">Sin sedes registradas</td><td data-label="Equipos">—</td><td data-label="Personal">—</td><td data-label="" class="td-actions">—</td></tr>`);
-}else{
-locs.forEach(loc=>{
-const eqCount=equipos.filter(e=>e.empresaId===emp.id && e.ubicacion===loc).length;
-const perCount=personal.filter(p=>p.empresaId===emp.id && p.ubicacion===loc).length;
-rows.push(`<tr><td data-label="Empresa">${emp.nombre}</td><td data-label="Sede/Ubicación"><i class="fas fa-map-marker-alt" style="color:var(--accent-light);margin-right:6px"></i>${loc}</td>
-<td data-label="Equipos"><span class="badge badge-info">${eqCount}</span></td><td data-label="Personal"><span class="badge badge-info">${perCount}</span></td>
-<td class="td-actions" data-label=""><button class="btn-icon btn-danger-icon" onclick="deleteSedeFromTable('${emp.id}','${loc.replace(/'/g,"\\'")}')" ><i class="fas fa-trash"></i></button></td></tr>`);
-});
-}
-});
-document.getElementById('adminSedesBody').innerHTML=rows.length?rows.join(''):'<tr><td colspan="5"><div class="table-empty"><i class="fas fa-map-marker-alt"></i><p>No hay sedes</p></div></td></tr>';
-}
-
-async function deleteSedeFromTable(empId,nombre){
-if(!confirm(`¿Eliminar "${nombre}"? Los equipos y personal en esta sede quedarán sin asignar.`))return;
-await DataManager.deleteUbicacion(empId,nombre);
-await renderAdminSedes();await renderAdminKPIs();showNotification('Sede eliminada','success');
-}
-
-// === INVENTARIO GLOBAL ===
-async function renderAdminInventario(){
-const empFilter=document.getElementById('adminInvEmpresa').value;
-const tipoFilter=document.getElementById('adminInvTipo').value;
-let equipos=empFilter?await DataManager.getEquipos(empFilter):await DataManager.getAllEquipos();
-if(tipoFilter)equipos=equipos.filter(e=>e.tipo===tipoFilter);
-if(equipos.length===0){
-  document.getElementById('adminInventarioBody').innerHTML='<tr><td colspan="9"><div class="table-empty"><i class="fas fa-box-open"></i><p>No hay equipos</p></div></td></tr>';
-  return;
-}
-const empresas = await DataManager.getEmpresas();
-const empMap = new Map(empresas.map(e => [e.id, e.nombre]));
-const personal = await DataManager.getAllPersonal();
-const perMap = new Map(personal.map(p => [p.id, p]));
-
-document.getElementById('adminInventarioBody').innerHTML=equipos.map(e=>{
-const empName=empMap.get(e.empresaId);const per=e.empleadoId ? perMap.get(e.empleadoId) : null;
-return`<tr><td data-label="Empresa">${empName||'—'}</td><td data-label="Tipo"><div class="td-type"><i class="fas ${getEquipmentIcon(e.tipo)}"></i>${e.tipo}</div></td>
-<td data-label="Equipo">${e.marca} ${e.modelo}</td><td data-label="Serial">${e.serial}</td>
-<td data-label="Asignado a">${per?`${per.nombre} ${per.apellido}`:'Sin asignar'}</td><td data-label="Ubicación">${e.ubicacion||'—'}</td>
-<td data-label="Estado">${getStatusBadge(e.estado)}</td><td data-label="IP">${e.direccionIP||'—'}</td>
-<td class="td-actions" data-label=""><button class="btn-icon" onclick="openAdminEquipoModal('${e.id}')"><i class="fas fa-edit"></i></button>
-<button class="btn-icon btn-danger-icon" onclick="deleteAdminEquipo('${e.id}')"><i class="fas fa-trash"></i></button></td></tr>`;}).join('');
-}
-
-function openAdminExportConfig() {
-  ReportsManager.openExportModal('csv', 'modalExportAdmin', async (fmt, options) => {
-    const empFilter = document.getElementById('adminInvEmpresa').value;
-    let equipos = empFilter ? await DataManager.getEquipos(empFilter) : await DataManager.getAllEquipos();
-    const pm = {};
-    const personal = await DataManager.getAllPersonal();
-    personal.forEach(p => pm[p.id] = p);
-    ReportsManager.exportExcel(equipos, 'Global', pm, options);
-  });
-}
-
 // === NAVIGATION ===
 function switchAdminSection(section,el){
 document.querySelectorAll('.sidebar__link').forEach(l=>l.classList.remove('active'));el.classList.add('active');
-['dashboard','empresas','usuarios','sedes','personal','inventario'].forEach(s=>{
+['dashboard','empresas','usuarios'].forEach(s=>{
 document.getElementById('sec-'+s).style.display=s===section?'':'none';
 });
-const titles={dashboard:'Dashboard',empresas:'Empresas',usuarios:'Usuarios',sedes:'Sedes',personal:'Personal',inventario:'Inventario Global'};
+const titles={dashboard:'Dashboard',empresas:'Empresas',usuarios:'Usuarios'};
 document.getElementById('adminPageTitle').textContent=titles[section]||section;
 }
-
-// === ADMIN EQUIPO CRUD ===
-function switchAdminTab(btn,tabId){
-btn.parentElement.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
-const form=btn.closest('form')||btn.closest('.modal__body');
-form.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-document.getElementById(tabId).classList.add('active');
-}
-
-function toggleAdminTypeFields(){
-const t=document.getElementById('aeqTipo').value;
-document.getElementById('aeqPcFields').style.display=(t==='pcescritorio'||t==='notebook'||t==='servidor'||t==='computador')?'':'none';
-document.getElementById('aeqPrinterFields').style.display=t==='impresora'?'':'none';
-document.getElementById('aeqPhoneFields').style.display=(t==='celular'||t==='tablet')?'':'none';
-document.getElementById('aeqServerFields').style.display=t==='servidor'?'':'none';
-document.getElementById('aeqTabPerifericosBtn').style.display=(t==='pcescritorio'||t==='notebook'||t==='computador')?'':'none';
-document.getElementById('aeqTabSoftwareBtn').style.display=t==='impresora'?'none':'';
-}
-
-async function loadAdminEquipoSelects(){
-const empId=document.getElementById('aeqEmpresa').value;
-const locSel=document.getElementById('aeqUbicacion');
-const empSel=document.getElementById('aeqEmpleado');
-if(!empId){
-  locSel.innerHTML='<option value="">Seleccione empresa primero</option>';
-  empSel.innerHTML='<option value="">Seleccione empresa primero</option>';
-  return;
-}
-const locs=await DataManager.getUniqueLocations(empId);
-locSel.innerHTML='<option value="">Sin asignar</option>'+locs.map(l=>`<option value="${l}">${l}</option>`).join('');
-const personal=await DataManager.getPersonal(empId);
-empSel.innerHTML='<option value="">Sin asignar</option>'+personal.map(p=>`<option value="${p.id}">${p.nombre} ${p.apellido} — ${p.cargo||''}</option>`).join('');
-}
-
-async function openAdminEquipoModal(id){
-const isEdit=!!id;
-document.getElementById('adminEquipoModalTitle').textContent=isEdit?'Editar Equipo':'Agregar Equipo';
-document.getElementById('adminEquipoForm').reset();document.getElementById('aeqId').value='';
-// Reset tabs
-document.querySelectorAll('#modalAdminEquipo .tab-btn').forEach((t,i)=>t.classList.toggle('active',i===0));
-document.querySelectorAll('#modalAdminEquipo .tab-content').forEach((c,i)=>c.classList.toggle('active',i===0));
-await loadEmpresaSelects();
-if(isEdit){
-const e=await DataManager.getEquipo(id);if(!e)return;
-document.getElementById('aeqId').value=e.id;
-document.getElementById('aeqEmpresa').value=e.empresaId;
-await loadAdminEquipoSelects();
-document.getElementById('aeqTipo').value=e.tipo;document.getElementById('aeqEstado').value=e.estado;
-document.getElementById('aeqMarca').value=e.marca;document.getElementById('aeqModelo').value=e.modelo;
-document.getElementById('aeqSerial').value=e.serial;
-setTimeout(()=>{
-document.getElementById('aeqEmpleado').value=e.empleadoId||'';
-document.getElementById('aeqUbicacion').value=e.ubicacion||'';
-},0);
-document.getElementById('aeqFechaCompra').value=e.fechaCompra||'';
-document.getElementById('aeqGarantia').value=e.garantiaHasta||'';
-document.getElementById('aeqProcesador').value=e.procesador||'';
-document.getElementById('aeqRam').value=e.ram||'';document.getElementById('aeqPrecio').value=e.precioEstimado||'';
-document.getElementById('aeqTarjetaVideo').value=e.tarjetaVideo||'';
-document.getElementById('aeqTipoImpresion').value=e.tipoImpresion||'';
-document.getElementById('aeqConsumibles').value=e.consumibles||'';
-document.getElementById('aeqConectividad').value=e.conectividad||'';document.getElementById('aeqImei').value=e.imei||'';document.getElementById('aeqLinea').value=e.lineaTelefonica||'';
-document.getElementById('aeqTipoServidor').value=e.tipoServidor||'';
-document.getElementById('aeqAlmTotal').value=e.almacenamientoTotal||'';
-document.getElementById('aeqOS').value=e.sistemaOperativo?e.sistemaOperativo.nombre:'';
-document.getElementById('aeqOSVersion').value=e.sistemaOperativo?e.sistemaOperativo.version:'';
-document.getElementById('aeqIP').value=e.direccionIP||'';document.getElementById('aeqNotas').value=e.notas||'';
-document.getElementById('aeqPerTeclado').value=e.perTeclado||'';document.getElementById('aeqPerMouse').value=e.perMouse||'';
-document.getElementById('aeqPerCamara').value=e.perCamara||'';document.getElementById('aeqPerAudifonos').value=e.perAudifonos||'';
-document.getElementById('aeqPerParlantes').value=e.perParlantes||'';document.getElementById('aeqPerMonitor').value=e.perMonitor||'';
-document.getElementById('aeqPerOtros').value=e.perOtros||'';
-createAdminDynamicList('aeqListProgramas',[{key:'nombre',placeholder:'Programa'},{key:'version',placeholder:'Versión'}],e.programasInstalados||[]);
-createAdminDynamicList('aeqListUnidades',[{key:'letra',placeholder:'Letra (Z:)'},{key:'ruta',placeholder:'Ruta (\\\\server\\share)'}],e.unidadesRed||[]);
-createAdminDynamicList('aeqListImpresoras',[{key:'nombre',placeholder:'Nombre'},{key:'tipo',placeholder:'Tipo (red/usb)'},{key:'ip',placeholder:'IP'}],e.impresorasInstaladas||[]);
-}else{
-createAdminDynamicList('aeqListProgramas',[{key:'nombre',placeholder:'Programa'},{key:'version',placeholder:'Versión'}],[]);
-createAdminDynamicList('aeqListUnidades',[{key:'letra',placeholder:'Letra (Z:)'},{key:'ruta',placeholder:'Ruta (\\\\server\\share)'}],[]);
-createAdminDynamicList('aeqListImpresoras',[{key:'nombre',placeholder:'Nombre'},{key:'tipo',placeholder:'Tipo (red/usb)'},{key:'ip',placeholder:'IP'}],[]);
-}
-toggleAdminTypeFields();openModal('modalAdminEquipo');
-}
-
-function createAdminDynamicList(containerId,fields,items){
-const c=document.getElementById(containerId);c.innerHTML='';
-if(items.length===0)items=[{}];
-items.forEach(item=>addAdminDynamicRow(containerId,fields,item));
-}
-
-function addAdminDynamicRow(containerId,fields,item={}){
-const c=document.getElementById(containerId);
-const row=document.createElement('div');row.className='dynamic-list-item';
-fields.forEach(f=>{const inp=document.createElement('input');inp.className='form-control form-control-sm';inp.placeholder=f.placeholder;inp.value=item[f.key]||'';inp.dataset.key=f.key;row.appendChild(inp);});
-const delBtn=document.createElement('button');delBtn.type='button';delBtn.className='btn-icon btn-danger-icon';delBtn.innerHTML='<i class="fas fa-times"></i>';delBtn.onclick=()=>row.remove();row.appendChild(delBtn);c.appendChild(row);
-}
-
-function addDynamicItem(containerId){
-const c=document.getElementById(containerId);
-let fields;
-if(containerId.includes('Programas'))fields=[{key:'nombre',placeholder:'Programa'},{key:'version',placeholder:'Versión'}];
-else if(containerId.includes('Unidades'))fields=[{key:'letra',placeholder:'Letra (Z:)'},{key:'ruta',placeholder:'Ruta (\\\\server\\share)'}];
-else fields=[{key:'nombre',placeholder:'Nombre'},{key:'tipo',placeholder:'Tipo (red/usb)'},{key:'ip',placeholder:'IP'}];
-addAdminDynamicRow(containerId,fields);
-}
-
-function getAdminListItems(containerId){
-const rows=document.getElementById(containerId).querySelectorAll('.dynamic-list-item');
-return Array.from(rows).map(row=>{
-const obj={};row.querySelectorAll('input').forEach(inp=>{if(inp.dataset.key)obj[inp.dataset.key]=inp.value;});return obj;
-});
-}
-
-async function saveAdminEquipo(e){
-e.preventDefault();const id=document.getElementById('aeqId').value;
-const empresaId=document.getElementById('aeqEmpresa').value;
-const _v=v=>v||null; // Convert empty strings to null for DB compatibility
-const data={empresaId,tipo:document.getElementById('aeqTipo').value,marca:document.getElementById('aeqMarca').value,modelo:document.getElementById('aeqModelo').value,serial:document.getElementById('aeqSerial').value,estado:document.getElementById('aeqEstado').value,empleadoId:_v(document.getElementById('aeqEmpleado').value),ubicacion:document.getElementById('aeqUbicacion').value,fechaCompra:_v(document.getElementById('aeqFechaCompra').value),garantiaHasta:_v(document.getElementById('aeqGarantia').value),precioEstimado:document.getElementById('aeqPrecio').value?parseFloat(document.getElementById('aeqPrecio').value):null,procesador:document.getElementById('aeqProcesador').value,ram:document.getElementById('aeqRam').value,disco:document.getElementById('aeqDisco').value,tarjetaVideo:document.getElementById('aeqTarjetaVideo').value,tipoImpresion:document.getElementById('aeqTipoImpresion').value,consumibles:document.getElementById('aeqConsumibles').value,conectividad:document.getElementById('aeqConectividad').value,imei:document.getElementById('aeqImei').value,lineaTelefonica:document.getElementById('aeqLinea').value,tipoServidor:document.getElementById('aeqTipoServidor').value,almacenamientoTotal:document.getElementById('aeqAlmTotal').value,sistemaOperativo:{nombre:document.getElementById('aeqOS').value,version:document.getElementById('aeqOSVersion').value},direccionIP:document.getElementById('aeqIP').value,programasInstalados:getAdminListItems('aeqListProgramas').filter(p=>p.nombre),unidadesRed:getAdminListItems('aeqListUnidades').filter(u=>u.letra),impresorasInstaladas:getAdminListItems('aeqListImpresoras').filter(p=>p.nombre),notas:document.getElementById('aeqNotas').value, perTeclado:document.getElementById('aeqPerTeclado').value, perMouse:document.getElementById('aeqPerMouse').value, perCamara:document.getElementById('aeqPerCamara').value, perAudifonos:document.getElementById('aeqPerAudifonos').value, perParlantes:document.getElementById('aeqPerParlantes').value, perMonitor:document.getElementById('aeqPerMonitor').value, perOtros:document.getElementById('aeqPerOtros').value};
-if(id)await DataManager.updateEquipo(id,data);else await DataManager.createEquipo(data);
-closeModal('modalAdminEquipo');await renderAll();showNotification(id?'Equipo actualizado':'Equipo agregado','success');
-}
-
-async function deleteAdminEquipo(id){if(!confirm('¿Eliminar este equipo?'))return;await DataManager.deleteEquipo(id);await renderAll();showNotification('Equipo eliminado','success');}
