@@ -163,6 +163,7 @@ return`<tr>
 <td data-label="Ingreso">${formatDate(e.fechaIngreso)}</td>
 <td class="td-actions" data-label="">
 <button class="btn-icon" onclick="viewEquipo('${e.id}')" title="Ver detalle"><i class="fas fa-eye"></i></button>
+${AuthManager.canCreate()?`<button class="btn-icon" onclick="duplicateEquipo('${e.id}')" title="Duplicar"><i class="fas fa-copy"></i></button>`:''}
 ${AuthManager.canEdit()?`<button class="btn-icon" onclick="openEquipoModal('${e.id}')" title="Editar"><i class="fas fa-edit"></i></button>`:''}
 ${AuthManager.canDelete()?`<button class="btn-icon btn-danger-icon" onclick="deleteEquipo('${e.id}')" title="Eliminar"><i class="fas fa-trash"></i></button>`:''}
 </td></tr>`;}).join('');
@@ -208,12 +209,16 @@ renderEquipos();
 }
 
 // === EQUIPO CRUD ===
+let currentDetailEquipoId = null;
+
 async function viewEquipo(id){
+currentDetailEquipoId = id;
 const e=await DataManager.getEquipo(id);if(!e)return;
 const emp=e.empleadoId ? await DataManager.getEmpleado(e.empleadoId) : null;
 const empName=emp?`${emp.nombre} ${emp.apellido}`:'Sin asignar';
 document.getElementById('detailTitle').textContent=`${e.marca} ${e.modelo}`;
 if(AuthManager.canEdit())document.getElementById('detailEditBtn').style.display='';
+if(AuthManager.canCreate())document.getElementById('detailDuplicateBtn').style.display='';
 document.getElementById('detailEditBtn').onclick=()=>{closeModal('modalDetail');openEquipoModal(id);};
 
 document.getElementById('detail-general').innerHTML=`<div class="detail-grid">
@@ -344,6 +349,64 @@ showNotification(id?'Equipo actualizado':'Equipo agregado','success');
 
 async function deleteEquipo(id){if(!confirm('¿Eliminar este equipo?'))return;await DataManager.deleteEquipo(id);await renderKPIs();await loadFilters();await applyFilters();showNotification('Equipo eliminado','success');}
 function editFromDetail(){const id=document.getElementById('equipoId').value;closeModal('modalDetail');openEquipoModal(id);}
+
+// === DUPLICATE EQUIPO ===
+async function duplicateEquipo(id){
+  const original = await DataManager.getEquipo(id);
+  if(!original) return;
+  // Open the modal as "new" (no id) so it creates a new record
+  document.getElementById('equipoModalTitle').textContent='Duplicar Equipo';
+  document.getElementById('equipoForm').reset();
+  document.getElementById('equipoId').value='';
+  // Reset tabs
+  document.querySelectorAll('#modalEquipo .tab-btn').forEach((t,i)=>t.classList.toggle('active',i===0));
+  document.querySelectorAll('#modalEquipo .tab-content').forEach((c,i)=>c.classList.toggle('active',i===0));
+  await loadFilters();
+  // Pre-fill all fields from original, except serial and empleado
+  document.getElementById('eqTipo').value=original.tipo;
+  document.getElementById('eqEstado').value=original.estado;
+  document.getElementById('eqMarca').value=original.marca;
+  document.getElementById('eqModelo').value=original.modelo;
+  document.getElementById('eqSerial').value=''; // Leave empty — unique per device
+  document.getElementById('eqEmpleado').value=''; // Leave empty — user assigns new person
+  document.getElementById('eqUbicacion').value=original.ubicacion||'';
+  document.getElementById('eqFechaCompra').value=original.fechaCompra||'';
+  document.getElementById('eqGarantia').value=original.garantiaHasta||'';
+  document.getElementById('eqProcesador').value=original.procesador||'';
+  document.getElementById('eqRam').value=original.ram||'';
+  document.getElementById('eqDisco').value=original.disco||'';
+  document.getElementById('eqPrecio').value=original.precioEstimado||'';
+  document.getElementById('eqTarjetaVideo').value=original.tarjetaVideo||'';
+  document.getElementById('eqTipoImpresion').value=original.tipoImpresion||'';
+  document.getElementById('eqConsumibles').value=original.consumibles||'';
+  document.getElementById('eqConectividad').value=original.conectividad||'';
+  document.getElementById('eqImei').value='';
+  document.getElementById('eqLinea').value=original.lineaTelefonica||'';
+  document.getElementById('eqTipoServidor').value=original.tipoServidor||'';
+  document.getElementById('eqAlmTotal').value=original.almacenamientoTotal||'';
+  document.getElementById('eqOS').value=original.sistemaOperativo?original.sistemaOperativo.nombre:'';
+  document.getElementById('eqOSVersion').value=original.sistemaOperativo?original.sistemaOperativo.version:'';
+  document.getElementById('eqIP').value='';
+  document.getElementById('eqNotas').value=original.notas||'';
+  document.getElementById('eqPerTeclado').value=original.perTeclado||'';
+  document.getElementById('eqPerMouse').value=original.perMouse||'';
+  document.getElementById('eqPerCamara').value=original.perCamara||'';
+  document.getElementById('eqPerAudifonos').value=original.perAudifonos||'';
+  document.getElementById('eqPerParlantes').value=original.perParlantes||'';
+  document.getElementById('eqPerMonitor').value=original.perMonitor||'';
+  document.getElementById('eqPerOtros').value=original.perOtros||'';
+  createDynamicList('listProgramas',[{key:'nombre',placeholder:'Programa'},{key:'version',placeholder:'Versión'}],original.programasInstalados||[]);
+  createDynamicList('listUnidades',[{key:'letra',placeholder:'Letra (Z:)'},{key:'ruta',placeholder:'Ruta (\\\\server\\share)'}],original.unidadesRed||[]);
+  createDynamicList('listImpresoras',[{key:'nombre',placeholder:'Nombre'},{key:'tipo',placeholder:'Tipo (red/usb)'},{key:'ip',placeholder:'IP'}],original.impresorasInstaladas||[]);
+  toggleTypeFields();
+  openModal('modalEquipo');
+  showNotification('Equipo duplicado — complete el serial y asigne persona','info');
+}
+
+function duplicateFromDetail(){
+  closeModal('modalDetail');
+  if(currentDetailEquipoId) duplicateEquipo(currentDetailEquipoId);
+}
 
 // === PERSONAL ===
 async function renderPersonal(search){
