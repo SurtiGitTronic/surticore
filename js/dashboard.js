@@ -24,11 +24,19 @@ if(s.rol==='admin'){
   document.getElementById('btnAddPersonal').style.display='';
   const btnManageLocs = document.getElementById('btnManageLocs');
   if(btnManageLocs) btnManageLocs.style.display = 'block';
+  // Show Soporte Remoto for admin
+  const navSoporte = document.getElementById('nav-soporte-remoto');
+  if(navSoporte) navSoporte.style.display = '';
 } else {
   empresaId=s.empresaId;
   if(s.permisos && s.permisos.canManageUbicaciones) {
     const btn = document.getElementById('btnManageLocs');
     if(btn) btn.style.display = 'block';
+  }
+  // Show Soporte Remoto if user has permission
+  if(s.permisos && s.permisos.canSoporteRemoto) {
+    const navSoporte = document.getElementById('nav-soporte-remoto');
+    if(navSoporte) navSoporte.style.display = '';
   }
   if(AuthManager.canCreate()){document.getElementById('btnAddEquipo').style.display='';document.getElementById('btnAddPersonal').style.display='';}
 }

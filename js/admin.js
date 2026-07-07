@@ -200,7 +200,7 @@ let usersRaw=await DataManager.getUsers();
 let users = usersRaw;
 if(empFilter)users=users.filter(u=>u.empresaId===empFilter);
 if(users.length===0){
-  document.getElementById('usuariosTableBody').innerHTML='<tr><td colspan="10"><div class="table-empty"><i class="fas fa-user-slash"></i><p>No hay usuarios</p></div></td></tr>';
+  document.getElementById('usuariosTableBody').innerHTML='<tr><td colspan="11"><div class="table-empty"><i class="fas fa-user-slash"></i><p>No hay usuarios</p></div></td></tr>';
   return;
 }
 const empMap = new Map();
@@ -212,7 +212,7 @@ const empName=empMap.get(u.empresaId);
 const check=v=>v?'<i class="fas fa-check-circle" style="color:var(--success)"></i>':'<i class="fas fa-times-circle" style="color:var(--text-secondary);opacity:.3"></i>';
 return`<tr>
 <td data-label="Usuario"><strong>${u.username}</strong></td><td data-label="Nombre">${u.nombre}</td><td data-label="Empresa">${empName||'—'}</td><td data-label="Rol"><span class="badge ${u.rol==='admin'?'badge-primary':'badge-info'}">${u.rol==='admin'?'Admin':'Cliente'}</span></td>
-<td data-label="Crear">${check(u.permisos.canCreate)}</td><td data-label="Editar">${check(u.permisos.canEdit)}</td><td data-label="Eliminar">${check(u.permisos.canDelete)}</td><td data-label="Sedes">${check(u.permisos.canManageUbicaciones)}</td>
+<td data-label="Crear">${check(u.permisos.canCreate)}</td><td data-label="Editar">${check(u.permisos.canEdit)}</td><td data-label="Eliminar">${check(u.permisos.canDelete)}</td><td data-label="Sedes">${check(u.permisos.canManageUbicaciones)}</td><td data-label="Soporte">${check(u.permisos.canSoporteRemoto)}</td>
 <td data-label="Estado">${u.activo?'<span class="badge badge-success">Activo</span>':'<span class="badge badge-danger">Inactivo</span>'}</td>
 <td class="td-actions" data-label="">
 <button class="btn-icon" onclick="openUsuarioModal('${u.id}')"><i class="fas fa-edit"></i></button>
@@ -238,6 +238,7 @@ document.getElementById('usrCanCreate').checked=u.permisos.canCreate;
 document.getElementById('usrCanEdit').checked=u.permisos.canEdit;
 document.getElementById('usrCanDelete').checked=u.permisos.canDelete;
 document.getElementById('usrCanManageUbicaciones').checked=u.permisos.canManageUbicaciones||false;
+document.getElementById('usrCanSoporteRemoto').checked=u.permisos.canSoporteRemoto||false;
 document.getElementById('usrActivo').checked=u.activo;
 }
 openModal('modalUsuario');
@@ -256,7 +257,7 @@ e.preventDefault();const id=document.getElementById('usrId').value;
 const rol = document.getElementById('usrRol').value;
 const empresaId = rol === 'admin' ? null : document.getElementById('usrEmpresa').value;
 const cargo = rol === 'admin' ? document.getElementById('usrCargo').value : null;
-const data={username:document.getElementById('usrUsername').value,password:document.getElementById('usrPassword').value,nombre:document.getElementById('usrNombre').value,empresaId,rol,permisos:{canCreate:document.getElementById('usrCanCreate').checked,canEdit:document.getElementById('usrCanEdit').checked,canDelete:document.getElementById('usrCanDelete').checked,canManageUbicaciones:document.getElementById('usrCanManageUbicaciones').checked,cargo},activo:document.getElementById('usrActivo').checked};
+const data={username:document.getElementById('usrUsername').value,password:document.getElementById('usrPassword').value,nombre:document.getElementById('usrNombre').value,empresaId,rol,permisos:{canCreate:document.getElementById('usrCanCreate').checked,canEdit:document.getElementById('usrCanEdit').checked,canDelete:document.getElementById('usrCanDelete').checked,canManageUbicaciones:document.getElementById('usrCanManageUbicaciones').checked,canSoporteRemoto:document.getElementById('usrCanSoporteRemoto').checked,cargo},activo:document.getElementById('usrActivo').checked};
 if(id)await DataManager.updateUser(id,data);else await DataManager.createUser(data);
 closeModal('modalUsuario');await renderUsuarios();showNotification(id?'Usuario actualizado':'Usuario creado','success');
 }
