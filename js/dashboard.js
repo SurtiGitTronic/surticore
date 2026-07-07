@@ -350,12 +350,12 @@ async function saveEquipo(e){
 e.preventDefault();const id=document.getElementById('equipoId').value;
 const _v=v=>v||null; // Convert empty strings to null for DB compatibility
 const data={empresaId,tipo:document.getElementById('eqTipo').value,marca:document.getElementById('eqMarca').value,modelo:document.getElementById('eqModelo').value,serial:document.getElementById('eqSerial').value,estado:document.getElementById('eqEstado').value,empleadoId:_v(document.getElementById('eqEmpleado').value),ubicacion:document.getElementById('eqUbicacion').value,fechaCompra:_v(document.getElementById('eqFechaCompra').value),garantiaHasta:_v(document.getElementById('eqGarantia').value),precioEstimado:document.getElementById('eqPrecio').value?parseFloat(document.getElementById('eqPrecio').value):null,procesador:document.getElementById('eqProcesador').value,ram:document.getElementById('eqRam').value,disco:document.getElementById('eqDisco').value,tarjetaVideo:document.getElementById('eqTarjetaVideo').value,tipoImpresion:document.getElementById('eqTipoImpresion').value,consumibles:document.getElementById('eqConsumibles').value,conectividad:document.getElementById('eqConectividad').value,imei:document.getElementById('eqImei').value,lineaTelefonica:document.getElementById('eqLinea').value,tipoServidor:document.getElementById('eqTipoServidor').value,almacenamientoTotal:document.getElementById('eqAlmTotal').value,sistemaOperativo:{nombre:document.getElementById('eqOS').value,version:document.getElementById('eqOSVersion').value},direccionIP:document.getElementById('eqIP').value,programasInstalados:getListItems('listProgramas').filter(p=>p.nombre),unidadesRed:getListItems('listUnidades').filter(u=>u.letra),impresorasInstaladas:getListItems('listImpresoras').filter(p=>p.nombre),notas:document.getElementById('eqNotas').value, perTeclado:document.getElementById('eqPerTeclado').value, perMouse:document.getElementById('eqPerMouse').value, perCamara:document.getElementById('eqPerCamara').value, perAudifonos:document.getElementById('eqPerAudifonos').value, perParlantes:document.getElementById('eqPerParlantes').value, perMonitor:document.getElementById('eqPerMonitor').value, perOtros:document.getElementById('eqPerOtros').value};
-if(id)await DataManager.updateEquipo(id,data);else await DataManager.createEquipo(data);
+if(id){await DataManager.updateEquipo(id,data);await DataManager.logAudit('editar','equipo',id,`${data.marca} ${data.modelo}`,empresaId,{serial:data.serial,tipo:data.tipo});}else{const created=await DataManager.createEquipo(data);await DataManager.logAudit('crear','equipo',created?created.id:null,`${data.marca} ${data.modelo}`,empresaId,{serial:data.serial,tipo:data.tipo});}
 closeModal('modalEquipo');await renderKPIs();await loadFilters();await loadSidebarLocations();await applyFilters();
 showNotification(id?'Equipo actualizado':'Equipo agregado','success');
 }
 
-async function deleteEquipo(id){if(!confirm('¿Eliminar este equipo?'))return;await DataManager.deleteEquipo(id);await renderKPIs();await loadFilters();await applyFilters();showNotification('Equipo eliminado','success');}
+async function deleteEquipo(id){if(!confirm('¿Eliminar este equipo?'))return;const eq=await DataManager.getEquipo(id);await DataManager.deleteEquipo(id);await DataManager.logAudit('eliminar','equipo',id,eq?`${eq.marca} ${eq.modelo}`:'',empresaId,{serial:eq?eq.serial:''});await renderKPIs();await loadFilters();await applyFilters();showNotification('Equipo eliminado','success');}
 function editFromDetail(){const id=document.getElementById('equipoId').value;closeModal('modalDetail');openEquipoModal(id);}
 
 // === DUPLICATE EQUIPO ===
@@ -447,12 +447,12 @@ openModal('modalPersonal');
 async function savePersonal(e){
 e.preventDefault();const id=document.getElementById('personalId').value;
 const data={empresaId,nombre:document.getElementById('perNombre').value,apellido:document.getElementById('perApellido').value,cargo:document.getElementById('perCargo').value,departamento:document.getElementById('perDepto').value,email:document.getElementById('perEmail').value,telefono:document.getElementById('perTelefono').value,ubicacion:document.getElementById('perUbicacion').value,activo:true};
-if(id)await DataManager.updateEmpleado(id,data);else await DataManager.createEmpleado(data);
+if(id){await DataManager.updateEmpleado(id,data);await DataManager.logAudit('editar','personal',id,`${data.nombre} ${data.apellido}`,empresaId,{cargo:data.cargo});}else{const created=await DataManager.createEmpleado(data);await DataManager.logAudit('crear','personal',created?created.id:null,`${data.nombre} ${data.apellido}`,empresaId,{cargo:data.cargo});}
 closeModal('modalPersonal');await renderPersonal();await loadFilters();await loadSidebarLocations();
 showNotification(id?'Personal actualizado':'Personal agregado','success');
 }
 
-async function deletePersonal(id){if(!confirm('¿Eliminar este empleado? Los equipos asignados quedarán sin asignar.'))return;await DataManager.deleteEmpleado(id);await renderPersonal();await loadFilters();await applyFilters();showNotification('Personal eliminado','success');}
+async function deletePersonal(id){if(!confirm('¿Eliminar este empleado? Los equipos asignados quedarán sin asignar.'))return;const emp=await DataManager.getEmpleado(id);await DataManager.deleteEmpleado(id);await DataManager.logAudit('eliminar','personal',id,emp?`${emp.nombre} ${emp.apellido}`:'',empresaId);await renderPersonal();await loadFilters();await applyFilters();showNotification('Personal eliminado','success');}
 
 async function viewEmpleadoEquipos(id){
 const emp=await DataManager.getEmpleado(id),eqs=await DataManager.getEquiposByEmpleado(id);
@@ -523,6 +523,7 @@ async function clientAddUbicacion() {
   const val = input.value.trim();
   if(!val) return;
   await DataManager.addUbicacion(empresaId, val);
+  await DataManager.logAudit('crear','ubicacion',null,val,empresaId);
   input.value = '';
   await renderGestionUbicacionesList();
   await loadSidebarLocations();
@@ -533,6 +534,7 @@ async function clientAddUbicacion() {
 async function clientDeleteUbicacion(nombre) {
   if(!confirm(`¿Eliminar "${nombre}"? Los equipos y personal asignados quedarán sin ubicación.`)) return;
   await DataManager.deleteUbicacion(empresaId, nombre);
+  await DataManager.logAudit('eliminar','ubicacion',null,nombre,empresaId);
   await renderGestionUbicacionesList();
   await loadSidebarLocations();
   await loadUbicacionesSelects();

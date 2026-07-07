@@ -184,13 +184,13 @@ if(id){
   await DataManager.createEmpresa(data);
 }
 
-closeModal('modalEmpresa');await renderAll();showNotification(id?'Empresa actualizada':'Empresa creada','success');
+closeModal('modalEmpresa');await DataManager.logAudit(id?'editar':'crear','empresa',id||'new',data.nombre,null,{rut:data.rut});await renderAll();showNotification(id?'Empresa actualizada':'Empresa creada','success');
 }
 
 async function deleteEmpresa(id){
 const e=await DataManager.getEmpresa(id);
 if(!confirm(`¿Eliminar "${e.nombre}"? Se eliminarán todos sus usuarios, personal y equipos.`))return;
-await DataManager.deleteEmpresa(id);await renderAll();showNotification('Empresa eliminada','success');
+await DataManager.deleteEmpresa(id);await DataManager.logAudit('eliminar','empresa',id,e.nombre,null);await renderAll();showNotification('Empresa eliminada','success');
 }
 
 // === USUARIOS CRUD ===
@@ -258,18 +258,80 @@ const rol = document.getElementById('usrRol').value;
 const empresaId = rol === 'admin' ? null : document.getElementById('usrEmpresa').value;
 const cargo = rol === 'admin' ? document.getElementById('usrCargo').value : null;
 const data={username:document.getElementById('usrUsername').value,password:document.getElementById('usrPassword').value,nombre:document.getElementById('usrNombre').value,empresaId,rol,permisos:{canCreate:document.getElementById('usrCanCreate').checked,canEdit:document.getElementById('usrCanEdit').checked,canDelete:document.getElementById('usrCanDelete').checked,canManageUbicaciones:document.getElementById('usrCanManageUbicaciones').checked,canSoporteRemoto:document.getElementById('usrCanSoporteRemoto').checked,cargo},activo:document.getElementById('usrActivo').checked};
-if(id)await DataManager.updateUser(id,data);else await DataManager.createUser(data);
+if(id){await DataManager.updateUser(id,data);await DataManager.logAudit('editar','usuario',id,data.nombre,data.empresaId,{username:data.username,rol:data.rol});}else{const created=await DataManager.createUser(data);await DataManager.logAudit('crear','usuario',created?created.id:null,data.nombre,data.empresaId,{username:data.username,rol:data.rol});}
 closeModal('modalUsuario');await renderUsuarios();showNotification(id?'Usuario actualizado':'Usuario creado','success');
 }
 
-async function deleteUsuario(id){if(!confirm('¿Eliminar este usuario?'))return;await DataManager.deleteUser(id);await renderUsuarios();showNotification('Usuario eliminado','success');}
+async function deleteUsuario(id){if(!confirm('¿Eliminar este usuario?'))return;const u=await DataManager.getUser(id);await DataManager.deleteUser(id);await DataManager.logAudit('eliminar','usuario',id,u?u.nombre:'',u?u.empresaId:null,{username:u?u.username:''});await renderUsuarios();showNotification('Usuario eliminado','success');}
 
 // === NAVIGATION ===
 function switchAdminSection(section,el){
 document.querySelectorAll('.sidebar__link').forEach(l=>l.classList.remove('active'));el.classList.add('active');
-['dashboard','empresas','usuarios'].forEach(s=>{
+['dashboard','empresas','usuarios','auditoria'].forEach(s=>{
 document.getElementById('sec-'+s).style.display=s===section?'':'none';
 });
-const titles={dashboard:'Dashboard',empresas:'Empresas',usuarios:'Usuarios'};
+if(section==='auditoria') renderAuditLog();
+const titles={dashboard:'Dashboard',empresas:'Empresas',usuarios:'Usuarios',auditoria:'Auditoría'};
 document.getElementById('adminPageTitle').textContent=titles[section]||section;
+}
+
+// === AUDITORIA ===
+async function renderAuditLog(){
+  const filters = {
+    fechaDesde: document.getElementById('auditFechaDesde').value,
+    fechaHasta: document.getElementById('auditFechaHasta').value,
+    empresaId: document.getElementById('auditEmpresa').value,
+    action: document.getElementById('auditAction').value,
+    entity: document.getElementById('auditEntity').value
+  };
+  // Clean empty filters
+  Object.keys(filters).forEach(k => { if(!filters[k]) delete filters[k]; });
+  const logs = await DataManager.getAuditLog(filters);
+  const empMap = new Map();
+  const empresas = await DataManager.getEmpresas();
+  empresas.forEach(e => empMap.set(e.id, e.nombre));
+  // Populate empresa filter if not done
+  const empSelect = document.getElementById('auditEmpresa');
+  if(empSelect.options.length <= 1) {
+    empresas.forEach(e => {
+      const opt = document.createElement('option');
+      opt.value = e.id; opt.textContent = e.nombre;
+      empSelect.appendChild(opt);
+    });
+  }
+  const tbody = document.getElementById('auditTableBody');
+  if(!logs.length){
+    tbody.innerHTML='<tr><td colspan="6"><div class="table-empty"><i class="fas fa-clipboard-check"></i><p>No hay registros de auditoría</p></div></td></tr>';
+    return;
+  }
+  const actionBadge = a => {
+    const colors = {crear:'badge-success',editar:'badge-warning',eliminar:'badge-danger'};
+    const icons = {crear:'fa-plus',editar:'fa-pen',eliminar:'fa-trash'};
+    return `<span class="badge ${colors[a]||'badge-info'}"><i class="fas ${icons[a]||'fa-info'}"></i> ${a}</span>`;
+  };
+  const entityLabel = e => {
+    const icons = {equipo:'fa-laptop',personal:'fa-user',empresa:'fa-building',usuario:'fa-user-shield',ubicacion:'fa-map-marker-alt'};
+    return `<i class="fas ${icons[e]||'fa-cube'}"></i> ${e}`;
+  };
+  tbody.innerHTML = logs.map(l => {
+    const fecha = new Date(l.timestamp).toLocaleString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    const empName = l.empresaId ? (empMap.get(l.empresaId) || '—') : '—';
+    return `<tr>
+      <td data-label="Fecha">${fecha}</td>
+      <td data-label="Usuario"><strong>${l.userName||'—'}</strong></td>
+      <td data-label="Acción">${actionBadge(l.action)}</td>
+      <td data-label="Entidad">${entityLabel(l.entity)}</td>
+      <td data-label="Detalle">${l.entityName||'—'}</td>
+      <td data-label="Empresa">${empName}</td>
+    </tr>`;
+  }).join('');
+}
+
+function clearAuditFilters(){
+  document.getElementById('auditFechaDesde').value='';
+  document.getElementById('auditFechaHasta').value='';
+  document.getElementById('auditEmpresa').value='';
+  document.getElementById('auditAction').value='';
+  document.getElementById('auditEntity').value='';
+  renderAuditLog();
 }

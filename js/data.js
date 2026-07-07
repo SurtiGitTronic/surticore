@@ -232,6 +232,42 @@ const DataManager = {
     for (let p of affectedPersonal) {
       await this.updateEmpleado(p.id, { ubicacion: '' });
     }
+  },
+
+  // === AUDIT LOG ===
+  async logAudit(action, entity, entityId, entityName, empresaId, details) {
+    try {
+      const session = AuthManager.getSession();
+      const logEntry = {
+        id: generateId(),
+        timestamp: new Date().toISOString(),
+        userId: session ? session.userId : null,
+        userName: session ? session.nombre : 'Sistema',
+        action,
+        entity,
+        entityId,
+        entityName: entityName || '',
+        empresaId: empresaId || null,
+        details: details || {}
+      };
+      await supabaseClient.from('audit_log').insert([logEntry]);
+    } catch (err) {
+      console.error('[Audit] Error logging:', err);
+    }
+  },
+
+  async getAuditLog(filters = {}) {
+    let query = supabaseClient.from('audit_log').select('*').order('timestamp', { ascending: false });
+    if (filters.empresaId) query = query.eq('empresaId', filters.empresaId);
+    if (filters.action) query = query.eq('action', filters.action);
+    if (filters.entity) query = query.eq('entity', filters.entity);
+    if (filters.userId) query = query.eq('userId', filters.userId);
+    if (filters.fechaDesde) query = query.gte('timestamp', filters.fechaDesde);
+    if (filters.fechaHasta) query = query.lte('timestamp', filters.fechaHasta + 'T23:59:59');
+    query = query.limit(500);
+    const { data, error } = await query;
+    if (error) this._handleError(error, 'getAuditLog');
+    return data || [];
   }
 };
 

@@ -23,6 +23,7 @@
         <a href="#" class="sidebar__link active" onclick="switchAdminSection('dashboard',this)"><i class="fas fa-chart-pie"></i> Dashboard</a>
         <a href="#" class="sidebar__link" onclick="switchAdminSection('empresas',this)"><i class="fas fa-building"></i> Empresas</a>
         <a href="#" class="sidebar__link" onclick="switchAdminSection('usuarios',this)"><i class="fas fa-user-shield"></i> Usuarios</a>
+        <a href="#" class="sidebar__link" onclick="switchAdminSection('auditoria',this)"><i class="fas fa-clipboard-list"></i> Auditoría</a>
       </nav>
       <div class="sidebar__footer"><p>Panel de AdministraciÃ³n</p></div>
     </aside>
@@ -71,6 +72,27 @@
           </div></div>
         </div>
 
+        <!-- AUDITORIA -->
+        <div id="sec-auditoria" style="display:none">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+            <h2 style="font-size:1.1rem">Registro de Auditoría</h2>
+          </div>
+          <div class="admin-card" style="padding:16px;margin-bottom:16px">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+              <div class="form-group" style="margin:0;min-width:140px"><label style="font-size:.75rem">Desde</label><input type="date" id="auditFechaDesde" class="form-control"></div>
+              <div class="form-group" style="margin:0;min-width:140px"><label style="font-size:.75rem">Hasta</label><input type="date" id="auditFechaHasta" class="form-control"></div>
+              <div class="form-group" style="margin:0;min-width:140px"><label style="font-size:.75rem">Empresa</label><select id="auditEmpresa" class="form-control"><option value="">Todas</option></select></div>
+              <div class="form-group" style="margin:0;min-width:120px"><label style="font-size:.75rem">Acción</label><select id="auditAction" class="form-control"><option value="">Todas</option><option value="crear">Crear</option><option value="editar">Editar</option><option value="eliminar">Eliminar</option></select></div>
+              <div class="form-group" style="margin:0;min-width:120px"><label style="font-size:.75rem">Entidad</label><select id="auditEntity" class="form-control"><option value="">Todas</option><option value="equipo">Equipo</option><option value="personal">Personal</option><option value="empresa">Empresa</option><option value="usuario">Usuario</option><option value="ubicacion">Ubicación</option></select></div>
+              <button class="btn btn-primary btn-sm" onclick="renderAuditLog()"><i class="fas fa-search"></i> Filtrar</button>
+              <button class="btn btn-outline btn-sm" onclick="clearAuditFilters()"><i class="fas fa-times"></i> Limpiar</button>
+            </div>
+          </div>
+          <div class="table-container"><div class="table-wrapper">
+            <table><thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Entidad</th><th>Detalle</th><th>Empresa</th></tr></thead>
+            <tbody id="auditTableBody"></tbody></table>
+          </div></div>
+        </div>
 
       </div>
     </div>
