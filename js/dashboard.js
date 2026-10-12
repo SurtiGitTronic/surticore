@@ -260,11 +260,22 @@ const os=e.sistemaOperativo?`${e.sistemaOperativo.nombre||''} ${e.sistemaOperati
 const progs=(e.programasInstalados||[]).map(p=>`<div class="detail-list-item"><span>${p.nombre}</span><span>${p.version||''}</span></div>`).join('')||'<p style="color:var(--text-secondary);font-size:.85rem">Sin programas registrados</p>';
 const units=(e.unidadesRed||[]).map(u=>`<div class="detail-list-item"><span>${u.letra}</span><span>${u.ruta}</span></div>`).join('')||'<p style="color:var(--text-secondary);font-size:.85rem">Sin unidades de red</p>';
 const prints=(e.impresorasInstaladas||[]).map(p=>`<div class="detail-list-item"><span>${p.nombre} (${p.tipo})</span><span>${p.ip||''}</span></div>`).join('')||'<p style="color:var(--text-secondary);font-size:.85rem">Sin impresoras</p>';
+const _isPCDet=['pcescritorio','notebook','servidor','computador'].includes(e.tipo);
+const _showCreds=_isPCDet&&AuthManager.canEdit();
+const credsHtml=_showCreds?`<div class="detail-section"><h4><i class="fas fa-key"></i> Credenciales de Acceso</h4><div class="detail-grid">
+<div class="detail-item"><label>Usuario</label><span style="display:flex;align-items:center;gap:6px"><span id="detailCredUsuario">${escapeHtml(e.credUsuario)||'—'}</span>${e.credUsuario?`<button type="button" class="btn-icon" onclick="copyDetailValue('detailCredUsuario')" title="Copiar usuario"><i class="fas fa-copy"></i></button>`:''}</span></div>
+<div class="detail-item"><label>Clave</label><span style="display:flex;align-items:center;gap:6px"><span id="detailCredClave" style="font-family:monospace">${e.credClave?'••••••••':'—'}</span>${e.credClave?`<button type="button" class="btn-icon" onclick="toggleDetailClave(this)" title="Mostrar/ocultar"><i class="fas fa-eye"></i></button><button type="button" class="btn-icon" onclick="copyDetailValue('detailCredClave')" title="Copiar clave"><i class="fas fa-copy"></i></button>`:''}</span></div>
+</div></div>`:'';
 document.getElementById('detail-software').innerHTML=`
 <div class="detail-grid" style="margin-bottom:20px"><div class="detail-item"><label>Sistema Operativo</label><span>${os}</span></div><div class="detail-item"><label>Dirección IP</label><span>${e.direccionIP||'—'}</span></div></div>
+${credsHtml}
 <div class="detail-section"><h4><i class="fas fa-box"></i> Programas Instalados</h4><div class="detail-list">${progs}</div></div>
 <div class="detail-section"><h4><i class="fas fa-folder"></i> Unidades de Red</h4><div class="detail-list">${units}</div></div>
 <div class="detail-section"><h4><i class="fas fa-print"></i> Impresoras Instaladas</h4><div class="detail-list">${prints}</div></div>`;
+if(_showCreds){
+  const u=document.getElementById('detailCredUsuario');if(u&&e.credUsuario)u.dataset.value=e.credUsuario;
+  const c=document.getElementById('detailCredClave');if(c&&e.credClave){c.dataset.value=e.credClave;c.dataset.shown='0';}
+}
 
 if(e.tipo === 'impresora') {
   document.getElementById('detailTabSoftwareBtn').style.display='none';
@@ -298,6 +309,7 @@ async function openEquipoModal(id){
 const isEdit=!!id;
 document.getElementById('equipoModalTitle').textContent=isEdit?'Editar Equipo':'Agregar Equipo';
 document.getElementById('equipoForm').reset();document.getElementById('equipoId').value='';
+document.getElementById('eqCredClave').type='password';
 // Reset tabs
 document.querySelectorAll('#modalEquipo .tab-btn').forEach((t,i)=>t.classList.toggle('active',i===0));
 document.querySelectorAll('#modalEquipo .tab-content').forEach((c,i)=>c.classList.toggle('active',i===0));
@@ -325,6 +337,7 @@ document.getElementById('eqPerTeclado').value=e.perTeclado||'';document.getEleme
 document.getElementById('eqPerCamara').value=e.perCamara||'';document.getElementById('eqPerAudifonos').value=e.perAudifonos||'';
 document.getElementById('eqPerParlantes').value=e.perParlantes||'';document.getElementById('eqPerMonitor').value=e.perMonitor||'';
 document.getElementById('eqPerOtros').value=e.perOtros||'';
+document.getElementById('eqCredUsuario').value=e.credUsuario||'';document.getElementById('eqCredClave').value=e.credClave||'';
 createDynamicList('listProgramas',[{key:'nombre',placeholder:'Programa'},{key:'version',placeholder:'Versión'}],e.programasInstalados||[]);
 createDynamicList('listUnidades',[{key:'letra',placeholder:'Letra (Z:)'},{key:'ruta',placeholder:'Ruta (\\\\server\\share)'}],e.unidadesRed||[]);
 createDynamicList('listImpresoras',[{key:'nombre',placeholder:'Nombre'},{key:'tipo',placeholder:'Tipo (red/usb)'},{key:'ip',placeholder:'IP'}],e.impresorasInstaladas||[]);
@@ -344,12 +357,36 @@ document.getElementById('phoneFields').style.display=(t==='celular'||t==='tablet
 document.getElementById('serverFields').style.display=t==='servidor'?'':'none';
 document.getElementById('tabPerifericosBtn').style.display=(t==='pcescritorio'||t==='notebook'||t==='computador')?'':'none';
 document.getElementById('tabSoftwareBtn').style.display=t==='impresora'?'none':'';
+document.getElementById('credFields').style.display=(t==='pcescritorio'||t==='notebook'||t==='servidor'||t==='computador')?'':'none';
+}
+
+// Mostrar/ocultar contenido de un input de clave
+function togglePasswordField(inputId,btn){
+const inp=document.getElementById(inputId);if(!inp)return;
+const show=inp.type==='password';inp.type=show?'text':'password';
+const ic=btn&&btn.querySelector('i');if(ic){ic.classList.toggle('fa-eye',!show);ic.classList.toggle('fa-eye-slash',show);}
+}
+
+// Detalle: revelar / copiar clave del equipo
+function toggleDetailClave(btn){
+const sp=document.getElementById('detailCredClave');if(!sp)return;
+const shown=sp.dataset.shown==='1';
+sp.textContent=shown?'••••••••':sp.dataset.value;sp.dataset.shown=shown?'0':'1';
+const ic=btn.querySelector('i');ic.classList.toggle('fa-eye',shown);ic.classList.toggle('fa-eye-slash',!shown);
+}
+async function copyDetailValue(elId){
+const el=document.getElementById(elId);if(!el)return;
+const val=el.dataset.value!==undefined?el.dataset.value:el.textContent;
+try{await navigator.clipboard.writeText(val);showNotification('Copiado al portapapeles','success');}catch(_){showNotification('No se pudo copiar','error');}
 }
 
 async function saveEquipo(e){
 e.preventDefault();const id=document.getElementById('equipoId').value;
 const _v=v=>v||null; // Convert empty strings to null for DB compatibility
 const data={empresaId,tipo:document.getElementById('eqTipo').value,marca:document.getElementById('eqMarca').value,modelo:document.getElementById('eqModelo').value,serial:document.getElementById('eqSerial').value,estado:document.getElementById('eqEstado').value,empleadoId:_v(document.getElementById('eqEmpleado').value),ubicacion:document.getElementById('eqUbicacion').value,fechaCompra:_v(document.getElementById('eqFechaCompra').value),garantiaHasta:_v(document.getElementById('eqGarantia').value),precioEstimado:document.getElementById('eqPrecio').value?parseFloat(document.getElementById('eqPrecio').value):null,procesador:document.getElementById('eqProcesador').value,ram:document.getElementById('eqRam').value,disco:document.getElementById('eqDisco').value,tarjetaVideo:document.getElementById('eqTarjetaVideo').value,tipoImpresion:document.getElementById('eqTipoImpresion').value,consumibles:document.getElementById('eqConsumibles').value,conectividad:document.getElementById('eqConectividad').value,imei:document.getElementById('eqImei').value,lineaTelefonica:document.getElementById('eqLinea').value,tipoServidor:document.getElementById('eqTipoServidor').value,almacenamientoTotal:document.getElementById('eqAlmTotal').value,sistemaOperativo:{nombre:document.getElementById('eqOS').value,version:document.getElementById('eqOSVersion').value},direccionIP:document.getElementById('eqIP').value,programasInstalados:getListItems('listProgramas').filter(p=>p.nombre),unidadesRed:getListItems('listUnidades').filter(u=>u.letra),impresorasInstaladas:getListItems('listImpresoras').filter(p=>p.nombre),notas:document.getElementById('eqNotas').value, perTeclado:document.getElementById('eqPerTeclado').value, perMouse:document.getElementById('eqPerMouse').value, perCamara:document.getElementById('eqPerCamara').value, perAudifonos:document.getElementById('eqPerAudifonos').value, perParlantes:document.getElementById('eqPerParlantes').value, perMonitor:document.getElementById('eqPerMonitor').value, perOtros:document.getElementById('eqPerOtros').value};
+const _isPC=['pcescritorio','notebook','servidor','computador'].includes(data.tipo);
+data.credUsuario=_isPC?_v(document.getElementById('eqCredUsuario').value):null;
+data.credClave=_isPC?_v(document.getElementById('eqCredClave').value):null;
 if(id){await DataManager.updateEquipo(id,data);await DataManager.logAudit('editar','equipo',id,`${data.marca} ${data.modelo}`,empresaId,{serial:data.serial,tipo:data.tipo});}else{const created=await DataManager.createEquipo(data);await DataManager.logAudit('crear','equipo',created?created.id:null,`${data.marca} ${data.modelo}`,empresaId,{serial:data.serial,tipo:data.tipo});}
 closeModal('modalEquipo');await renderKPIs();await loadFilters();await loadSidebarLocations();await applyFilters();
 showNotification(id?'Equipo actualizado':'Equipo agregado','success');
@@ -403,6 +440,9 @@ async function duplicateEquipo(id){
   document.getElementById('eqPerParlantes').value=original.perParlantes||'';
   document.getElementById('eqPerMonitor').value=original.perMonitor||'';
   document.getElementById('eqPerOtros').value=original.perOtros||'';
+  document.getElementById('eqCredUsuario').value=original.credUsuario||'';
+  document.getElementById('eqCredClave').value=''; // La clave no se duplica
+  document.getElementById('eqCredClave').type='password';
   createDynamicList('listProgramas',[{key:'nombre',placeholder:'Programa'},{key:'version',placeholder:'Versión'}],original.programasInstalados||[]);
   createDynamicList('listUnidades',[{key:'letra',placeholder:'Letra (Z:)'},{key:'ruta',placeholder:'Ruta (\\\\server\\share)'}],original.unidadesRed||[]);
   createDynamicList('listImpresoras',[{key:'nombre',placeholder:'Nombre'},{key:'tipo',placeholder:'Tipo (red/usb)'},{key:'ip',placeholder:'IP'}],original.impresorasInstaladas||[]);
