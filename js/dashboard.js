@@ -21,6 +21,7 @@ if(s.rol==='admin'){
   if(backBtn) backBtn.style.display = '';
   // Grant full permissions for admin viewing
   document.getElementById('btnAddEquipo').style.display='';
+  document.getElementById('btnImportEquipos').style.display='';
   document.getElementById('btnAddPersonal').style.display='';
   const btnManageLocs = document.getElementById('btnManageLocs');
   if(btnManageLocs) btnManageLocs.style.display = 'block';
@@ -38,7 +39,7 @@ if(s.rol==='admin'){
     const navSoporte = document.getElementById('nav-soporte-remoto');
     if(navSoporte) navSoporte.style.display = '';
   }
-  if(AuthManager.canCreate()){document.getElementById('btnAddEquipo').style.display='';document.getElementById('btnAddPersonal').style.display='';}
+  if(AuthManager.canCreate()){document.getElementById('btnAddEquipo').style.display='';document.getElementById('btnImportEquipos').style.display='';document.getElementById('btnAddPersonal').style.display='';}
 }
 
 document.getElementById('userName').textContent=s.nombre;

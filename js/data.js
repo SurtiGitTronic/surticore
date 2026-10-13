@@ -150,6 +150,18 @@ const DataManager = {
     const { error } = await supabaseClient.from('equipos').delete().eq('id', id);
     if (error) this._handleError(error, 'deleteEquipo');
   },
+  async createEquiposBulk(list, onProgress) {
+    const CHUNK = 50; let created = 0;
+    const now = new Date().toISOString();
+    for (let i = 0; i < list.length; i += CHUNK) {
+      const batch = list.slice(i, i + CHUNK).map(e => ({ ...e, id: generateId(), fechaIngreso: e.fechaIngreso || now }));
+      const { data, error } = await supabaseClient.from('equipos').insert(batch).select('id');
+      if (error) { this._handleError(error, 'createEquiposBulk'); break; }
+      created += (data || []).length;
+      if (onProgress) onProgress(created, list.length);
+    }
+    return created;
+  },
 
   // === STATS ===
   async getStats(empresaId) {
